@@ -1,0 +1,16 @@
+# Build output
+build/
+
+# SFML / vcpkg local installs
+vcpkg_installed/
+
+# VS Code
+.vscode/
+
+# MSVC debug files
+*.pdb
+*.ilk
+*.obj
+
+# Compiled binaries
+*.exe
