@@ -6,8 +6,8 @@ battery budget.
 
 Score = number of unique tiles visited before the battery dies.
 
-Originally built as a teaching tool to compare exploration algorithms.
-Also used to benchmark LLMs.
+Originally built as a teaching tool to compare exploration algorithms,
+as well as to benchmark LLM coge generation abilities.
 
 ---
 

@@ -1,0 +1,27 @@
+
+{
+    "trials" :[
+        {
+            "seed": 3,
+            "results": {
+                "claude"     : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "chatgpt"    : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "gemini"     : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "deepseek"   : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "grok"       : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "instructor" : { "score": -1, "steps": -1, "turns": -1, "scans": -1 }
+            }
+        },
+        {
+            "seed": 31,
+            "results": {
+                "claude"     : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "chatgpt"    : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "gemini"     : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "deepseek"   : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "grok"       : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
+                "instructor" : { "score": -1, "steps": -1, "turns": -1, "scans": -1 }
+            }
+        }
+    ]
+}

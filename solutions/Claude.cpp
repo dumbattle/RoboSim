@@ -2,7 +2,7 @@
 //
 // ALGORITHM OVERVIEW
 // ------------------
-// Maintains an internal grid of cell states (UNKNOWN, OPEN, WALL)
+// Maintains an internal grid of cell states (CS_UNKNOWN, CS_OPEN, WALL)
 // and a visited map tracking which cells the robot has physically stood on.
 //
 // Each iteration:
@@ -10,15 +10,15 @@
 //      If any is unvisited or has unknown neighbors, move there directly
 //      without replanning. This keeps the robot moving in straight runs.
 //
-//   2. REPLAN (only if greedy fails) — run Dijkstra over all reachable OPEN
-//      cells to find every frontier (unvisited cell, or OPEN cell with at
-//      least one UNKNOWN neighbor), weighted by actual move + turn cost.
+//   2. REPLAN (only if greedy fails) — run Dijkstra over all reachable CS_OPEN
+//      cells to find every frontier (unvisited cell, or CS_OPEN cell with at
+//      least one CS_UNKNOWN neighbor), weighted by actual move + turn cost.
 //      Navigate to the cheapest frontier using a second Dijkstra for the path.
 //
-//   3. SENSE — after each move, scan only directions that are still UNKNOWN
+//   3. SENSE — after each move, scan only directions that are still CS_UNKNOWN
 //      to minimise wasted turns.
 //
-// Sensing uses lazy evaluation: sensors are only queried for UNKNOWN cells,
+// Sensing uses lazy evaluation: sensors are only queried for CS_UNKNOWN cells,
 // and the grid is never re-queried for already-known cells.
 
 #include "robot_api.h"
@@ -27,11 +27,12 @@
 #include <queue>
 #include <algorithm>
 #include <cstring>
+#include <cstdint>
 
 // ---------------------------------------------------------------------------
 // Grid — direct map coordinates, no offset needed
 // ---------------------------------------------------------------------------
-enum CellState : uint8_t { UNKNOWN = 0, OPEN, WALL };
+enum CellState : uint8_t { CS_UNKNOWN = 0, CS_OPEN, CS_WALL };
 
 static CellState g_grid[MAP_WIDTH][MAP_HEIGHT];
 static bool g_visited[MAP_WIDTH][MAP_HEIGHT];
@@ -46,14 +47,15 @@ static const Direction DIRS[4]  = {NORTH, EAST, SOUTH, WEST};
 // FaceDirection — turn using actual GetDirection() feedback, no math
 // ---------------------------------------------------------------------------
 static void FaceDirection(Direction target) {
-    for (int i = 0; i < 3 && GetDirection() != target; ++i)
-        TurnRight();
-    if (GetDirection() != target)
-        TurnLeft();
+    Direction cur = GetDirection();
+    int diff = (target - cur + 4) % 4;
+    if (diff == 1) TurnRight();
+    else if (diff == 2) { TurnRight(); TurnRight(); }
+    else if (diff == 3) TurnLeft();
 }
 
 // ---------------------------------------------------------------------------
-// SenseAhead — query sensor only if UNKNOWN, update grid, return state
+// SenseAhead — query sensor only if CS_UNKNOWN, update grid, return state
 // ---------------------------------------------------------------------------
 static CellState SenseAhead() {
     int rx, ry; GetPosition(rx, ry);
@@ -63,10 +65,10 @@ static CellState SenseAhead() {
     for (int d = 0; d < 4; ++d) {
         if (DIRS[d] == facing) { ax += DX[d]; ay += DY[d]; break; }
     }
-    if (!InGrid(ax, ay)) return WALL;
-    if (g_grid[ax][ay] == UNKNOWN) {
-        if      (IsWallAhead())  g_grid[ax][ay] = WALL;
-        else                     g_grid[ax][ay] = OPEN;
+    if (!InGrid(ax, ay)) return CS_WALL;
+    if (g_grid[ax][ay] == CS_UNKNOWN) {
+        if      (IsWallAhead())  g_grid[ax][ay] = CS_WALL;
+        else                     g_grid[ax][ay] = CS_OPEN;
     }
     return g_grid[ax][ay];
 }
@@ -79,15 +81,15 @@ static CellState SenseAhead() {
 // ---------------------------------------------------------------------------
 static bool StepInDirection(Direction d) {
     FaceDirection(d);
-    if (SenseAhead() != OPEN) return false;
+    if (SenseAhead() != CS_OPEN) return false;
     MoveForward();
     int rx, ry; GetPosition(rx, ry);
-    g_grid[rx][ry] = OPEN;
+    g_grid[rx][ry] = CS_OPEN;
     return true;
 }
 
 // ---------------------------------------------------------------------------
-// PlanPath — Dijkstra through OPEN cells, penalising turns to prefer
+// PlanPath — Dijkstra through CS_OPEN cells, penalising turns to prefer
 // straight movement. Turn cost = BATTERY_TURN, move cost = BATTERY_MOVE.
 // ---------------------------------------------------------------------------
 struct PathNode { int x, y, parent; Direction move; int cost; };
@@ -130,7 +132,7 @@ static std::vector<Direction> PlanPath(int sx, int sy, int tx, int ty) {
             int nx = cur.x + DX[d];
             int ny = cur.y + DY[d];
             if (!InGrid(nx, ny))       continue;
-            if (g_grid[nx][ny] != OPEN) continue;
+            if (g_grid[nx][ny] != CS_OPEN) continue;
 
             // Turn cost: how many turns to face DIRS[d] from cur.move
             int rightSteps = 0;
@@ -151,8 +153,8 @@ static std::vector<Direction> PlanPath(int sx, int sy, int tx, int ty) {
 }
 
 // ---------------------------------------------------------------------------
-// FindFrontiers — BFS over OPEN cells, return all frontier cells
-// (OPEN cells with at least one UNKNOWN neighbor), sorted nearest-first
+// FindFrontiers — BFS over CS_OPEN cells, return all frontier cells
+// (CS_OPEN cells with at least one CS_UNKNOWN neighbor), sorted nearest-first
 // ---------------------------------------------------------------------------
 struct Frontier { int x, y, cost; };
 
@@ -181,13 +183,13 @@ static std::vector<Frontier> FindFrontiers(int curX, int curY) {
         Node cur = nodes[idx];
         if (c > best[cur.x][cur.y]) continue;
 
-        // Frontier if: not yet visited, OR has an UNKNOWN neighbor
+        // Frontier if: not yet visited, OR has an CS_UNKNOWN neighbor
         bool isFrontier = !g_visited[cur.x][cur.y];
         if (!isFrontier) {
             for (int d = 0; d < 4; ++d) {
                 int nx = cur.x + DX[d];
                 int ny = cur.y + DY[d];
-                if (InGrid(nx, ny) && g_grid[nx][ny] == UNKNOWN) {
+                if (InGrid(nx, ny) && g_grid[nx][ny] == CS_UNKNOWN) {
                     isFrontier = true;
                     break;
                 }
@@ -200,7 +202,7 @@ static std::vector<Frontier> FindFrontiers(int curX, int curY) {
             int nx = cur.x + DX[d];
             int ny = cur.y + DY[d];
             if (!InGrid(nx, ny))         continue;
-            if (g_grid[nx][ny] != OPEN)  continue;
+            if (g_grid[nx][ny] != CS_OPEN)  continue;
             int rightSteps = 0;
             Direction tmp = cur.facing;
             while (tmp != DIRS[d] && rightSteps < 4) { tmp = Right(tmp); ++rightSteps; }
@@ -222,26 +224,35 @@ static std::vector<Frontier> FindFrontiers(int curX, int curY) {
 
 // ---------------------------------------------------------------------------
 // GreedyStep — rotate through all 4 directions, sensing as we turn.
-// Moves to the first unvisited OPEN neighbor found. Scanning is free
+// Moves to the first unvisited CS_OPEN neighbor found. Scanning is free
 // since SenseAhead() is called regardless as part of the turn loop.
 // Returns true if a greedy move was made.
 // ---------------------------------------------------------------------------
 static bool GreedyStep() {
-    for (int i = 0; i < 4; i++) {
-        Direction d = GetDirection();
-        for(int j=0;j<i;j++) {
-            d = Right(d);
-        }
-        // d = (Direction)i;
-        int nx, ny;
-        GetPosition(nx, ny);
-        Translate(nx, ny, d);
+    int rx, ry;
+    GetPosition(rx, ry);
+    Direction cur = GetDirection();
 
-        if (g_grid[nx][ny] == UNKNOWN) {
+    // Priority: forward, left, right, back
+    Direction prio[4] = { cur, Left(cur), Right(cur), Right(Right(cur)) };
+
+    for (int i = 0; i < 4; i++) {
+        Direction d = prio[i];
+        int nx = rx, ny = ry;
+        Translate(nx, ny, d);
+        if (!InGrid(nx, ny)) continue;
+
+        // Skip known walls
+        if (g_grid[nx][ny] == CS_WALL) continue;
+
+        // Sense only if unknown
+        if (g_grid[nx][ny] == CS_UNKNOWN) {
             FaceDirection(d);
             SenseAhead();
         }
-        if (g_grid[nx][ny] == OPEN && !g_visited[nx][ny]) {
+
+        // Move if open and unvisited
+        if (g_grid[nx][ny] == CS_OPEN && !g_visited[nx][ny]) {
             StepInDirection(d);
             g_visited[nx][ny] = true;
             return true;
@@ -258,7 +269,7 @@ int main() {
 
     int rx, ry;
     GetPosition(rx, ry);
-    g_grid[rx][ry] = OPEN;
+    g_grid[rx][ry] = CS_OPEN;
     g_visited[rx][ry] = true;
 
 
@@ -275,11 +286,14 @@ int main() {
             std::vector<Direction> path = PlanPath(rx, ry, f.x, f.y);
             if (path.empty()) continue;
 
-            for (Direction d : path)
+            for (Direction d : path) {
                 StepInDirection(d);
+                GetPosition(rx, ry);
+                g_visited[rx][ry] = true;
+                // After each step, check if greedy can take over
+                if (GreedyStep()) break;
+            }
 
-            GetPosition(rx, ry);
-            g_visited[rx][ry] = true;
             moved = true;
             break;
         }
