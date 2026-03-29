@@ -14,3 +14,7 @@ vcpkg_installed/
 
 # Compiled binaries
 *.exe
+
+
+# misc
+*.bat

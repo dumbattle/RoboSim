@@ -1,27 +1,133 @@
 
 {
-    "trials" :[
+    "environment" : "A robot explores a 2D grid of randomly generated walls on a limited battery budget. It can only see one tile ahead and must use sensor queries, movement, and turning - all of which cost energy - to navigate. Score equals unique tiles visited before the battery runs out or the robot crashes into a wall.",
+    "contestants": {
+        "deepseek"    : "Scores frontier tiles by uncertainty-based info-gain divided by A* distance.",
+        "copilot"     : "Right hand Wall follow, with BFS when stuck",
+        "claude"      : "Dijkstra pathfinding weighted by turn + move cost to find the cheapest frontier. Greedy forward-first phase with mid-path re-evaluation.",
+        "chatgpt"     : "Stack-based DFS. Push forward into unvisited tiles, pop and physically backtrack one cell at a time when stuck. No pathfinding, no heuristics. Simple and clean.",
+        "gemini"      : "Scans entire grid for frontiers each iteration, picks nearest by Manhattan distance, BFS-paths to the closest adjacent tile. No greedy phase - every single move involves a full grid scan and pathfind." ,
+        "grok"        : "Stack-based DFS with right-hand wall-following priority (right > forward > left). Simple stack based backtracking",
+        "human"       : "Flood-fills unexplored tiles into connected groups, BFS-paths to each, and picks the group with the best size-to-distance ratio. Recalculates every step. Greedy phase checks forward first, skips known tiles from memory."
+    },
+    "parameters" : {
+        "MAP_WIDTH"         : 300,
+        "MAP_HEIGHT"        : 200,
+        "WALL_LAYERS"       : [40, 30, 30],
+        "MAX_BATTERY"       : 200000,        
+        "BATTERY_MOVE"      : 5,       
+        "BATTERY_TURN"      : 3,          
+        "BATTERY_QUERY_MIN" : 1,     
+        "BATTERY_QUERY_MAX" : 3  
+    },
+    "trials" : [
         {
             "seed": 3,
             "results": {
-                "claude"     : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "chatgpt"    : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "gemini"     : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "deepseek"   : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "grok"       : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "instructor" : { "score": -1, "steps": -1, "turns": -1, "scans": -1 }
+                "deepseek"   : { "score": 19839, "steps": 24422, "turns": 9844,  "scans": 24204 },
+                "copilot"    : { "score": 17154, "steps": 19303, "turns": 17117, "scans": 26056 },
+                "claude"     : { "score": 19307, "steps": 24652, "turns": 9720,  "scans": 23812 },
+                "chatgpt"    : { "score": 15539, "steps": 26912, "turns": 9076,  "scans": 19065 },
+                "gemini"     : { "score": 18915, "steps": 23467, "turns": 12261, "scans": 22945 },
+                "grok"       : { "score": 14754, "steps": 22001, "turns": 16459, "scans": 20271 },
+                "human"      : { "score": 20332, "steps": 24654, "turns": 9212,  "scans": 24684 }
             }
         },
         {
             "seed": 31,
             "results": {
-                "claude"     : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "chatgpt"    : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "gemini"     : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "deepseek"   : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "grok"       : { "score": -1, "steps": -1, "turns": -1, "scans": -1 },
-                "instructor" : { "score": -1, "steps": -1, "turns": -1, "scans": -1 }
+                "deepseek"   : { "score": 20296, "steps": 24586, "turns": 9356,  "scans": 24525 },
+                "copilot"    : { "score": 17900, "steps": 20318, "turns": 15519, "scans": 25913 },
+                "claude"     : { "score": 20497, "steps": 24746, "turns": 8997,  "scans": 24661 },
+                "chatgpt"    : { "score": 15531, "steps": 26892, "turns": 9153,  "scans": 18999 },
+                "gemini"     : { "score": 17935, "steps": 23773, "turns": 12418, "scans": 21934 },
+                "grok"       : { "score": 16991, "steps": 21034, "turns": 16441, "scans": 22734 },
+                "human"      : { "score": 20457, "steps": 24520, "turns": 9210,  "scans": 24870 }
             }
+        },
+        {
+            "seed": 314,
+            "results": {
+                "deepseek"   : { "score": 18354, "steps": 24598, "turns": 10455, "scans": 22830 },
+                "copilot"    : { "score": 17126, "steps": 19574, "turns": 16745, "scans": 25932 },
+                "claude"     : { "score": 19986, "steps": 24780, "turns": 9198,  "scans": 24277 },
+                "chatgpt"    : { "score": 15466, "steps": 26634, "turns": 9505,  "scans": 19115 },
+                "gemini"     : { "score": 17035, "steps": 23759, "turns": 12808, "scans": 21378 },
+                "grok"       : { "score": 14770, "steps": 21949, "turns": 16648, "scans": 20118 },
+                "human"      : { "score": 19849, "steps": 24509, "turns": 9611,  "scans": 24375 }
+            }
+        },
+        {
+            "seed": 3141,
+            "results": {
+                "deepseek"   : { "score": 20651, "steps": 24831, "turns": 8947,  "scans": 24526 },
+                "copilot"    : { "score": 17434, "steps": 19540, "turns": 16776, "scans": 25978 },
+                "claude"     : { "score": 20109, "steps": 24713, "turns": 9209,  "scans": 24434 },
+                "chatgpt"    : { "score": 14340, "steps": 27240, "turns": 9340,  "scans": 17850 },
+                "gemini"     : { "score": 17738, "steps": 23348, "turns": 13071, "scans": 22020 },
+                "grok"       : { "score": 15788, "steps": 20816, "turns": 17299, "scans": 21986 },
+                "human"      : { "score": 20326, "steps": 24636, "turns": 9193,  "scans": 24715 }
+            }
+        },
+        {
+            "seed": 31415,
+            "results": {
+                "deepseek"   : { "score": 18358, "steps": 24350, "turns": 10731, "scans": 23038 },
+                "copilot"    : { "score": 17235, "steps": 19941, "turns": 16180, "scans": 25869 },
+                "claude"     : { "score": 19628, "steps": 24842, "turns": 9342,  "scans": 23903 },
+                "chatgpt"    : { "score": 15272, "steps": 26833, "turns": 9326,  "scans": 18880 },
+                "gemini"     : { "score": 18484, "steps": 23641, "turns": 12319, "scans": 22408 },
+                "grok"       : { "score": 14458, "steps": 22130, "turns": 16675, "scans": 19617 },
+                "human"      : { "score": 20056, "steps": 24535, "turns": 9515,  "scans": 24445 }
+            }
+        },
+        {
+            "seed": 31415,
+            "results": {
+                "deepseek"   : { "score": 21503, "steps": 29137, "turns": 13262, "scans": 27201 },
+                "copilot"    : { "score": 22806, "steps": 26458, "turns": 20774, "scans": 33894 },
+                "claude"     : { "score": 21683, "steps": 29081, "turns": 12766, "scans": 27347 },
+                "chatgpt"    : { "score": 17232, "steps": 31392, "turns": 11143, "scans": 21512 },
+                "gemini"     : { "score": 22480, "steps": 29069, "turns": 15233, "scans": 27373 },
+                "grok"       : { "score": 19964, "steps": 29277, "turns": 21995, "scans": 26822 },
+                "human"      : { "score": 23091, "steps": 28700, "turns": 11391, "scans": 28293 }
+            },
+            "notes" : [
+                "Turn Cost set to 0"
+            ]
+        },
+        {
+            "seed": 31415,
+            "results": {
+                "deepseek"   : { "score": 23588, "steps": 31561, "turns": 14065, "scans": 29655 },
+                "copilot"    : { "score": 23337, "steps": 27145, "turns": 21394, "scans": 34814 },
+                "claude"     : { "score": 24693, "steps": 32258, "turns": 12904, "scans": 30585 },
+                "chatgpt"    : { "score": 18051, "steps": 32970, "turns": 11717, "scans": 22529 },
+                "gemini"     : { "score": 23049, "steps": 30466, "turns": 15891, "scans": 28131 },
+                "grok"       : { "score": 18444, "steps": 27580, "turns": 20684, "scans": 24879 },
+                "human"      : { "score": 25138, "steps": 32088, "turns": 13188, "scans": 31104 }
+            },
+            "notes" : [
+                "Scan Cost set to 0"
+            ]
+        },
+        {
+            "seed": 31415,
+            "results": {
+                "deepseek"   : { "score": 29227, "steps": 40000, "turns": 17933, "scans": 36806 },
+                "copilot"    : { "score": 32419, "steps": 39980, "turns": 27942, "scans": 48923 },
+                "claude"     : { "score": 28701, "steps": 40001, "turns": 17772, "scans": 36368 },
+                "chatgpt"    : { "score": 21564, "steps": 40001, "turns": 13985, "scans": 26808 },
+                "gemini"     : { "score": 28416, "steps": 39999, "turns": 21689, "scans": 35321 },
+                "grok"       : { "score": 25424, "steps": 39990, "turns": 27678, "scans": 33161 },
+                "human"      : { "score": 29600, "steps": 40001, "turns": 17250, "scans": 37178 }
+            },
+            "notes" : [
+                "Turn Cost set to 0",
+                "Scan Cost set to 0",
+                "Max Tiles: 32444",
+                "Some early exit when low on batteries. Loses out on a few points as most"
+            ]
         }
     ]
 }

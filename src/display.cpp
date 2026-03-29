@@ -213,15 +213,15 @@ void printMap() {
 
 void printStatus() {
     // Always write stats to stdout so they survive after the window closes.
-    cout << "\nFinal Score: " << countVisited() << " unique tiles visited.\n"
+    cout 
+         << "\nFinal Score: " << countVisited() << " unique tiles visited.\n"
          << "Battery remaining: " << robot.battery << "\n\n"
          << "Steps Taken  : " << numMoves << "\n"
          << "Turns Made   : " << numTurns << "\n"
-         << "Tiles Scanned: " << numScans << "\n";
+         << "Tiles Scanned: " << numScans << "\n"
+        //  << "\"score\": "<<countVisited()<<", \"steps\": "<<numMoves<<", \"turns\": "<<numTurns<<", \"scans\": "<<numScans<< endl
+    ;
 
     // Draw a final frozen frame.
     printMap();
-    cout << "Press enter to close";
-    string dummy;
-    cin >> dummy;
 }

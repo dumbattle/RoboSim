@@ -7,7 +7,7 @@ battery budget.
 Score = number of unique tiles visited before the battery dies.
 
 Originally built as a teaching tool to compare exploration algorithms,
-as well as to benchmark LLM coge generation abilities.
+as well as to benchmark LLM code generation abilities.
 
 ---
 
@@ -76,7 +76,7 @@ int GetBattery();                    // remaining battery
 int GetScore();                      // unique tiles visited so far
 ```
 
-**Direction helpers** *(free - to maintain consistancy with internal implementation)*
+**Direction helpers** *(free - to maintain consistency with internal implementation)*
 ```cpp
 Direction Left(Direction d);                        // direction 90° left of d
 Direction Right(Direction d);                       // direction 90° right of d
@@ -108,11 +108,32 @@ const int BATTERY_TURN        = 3;
 const int BATTERY_QUERY_MIN   = 1;
 const int BATTERY_QUERY_MAX   = 3;
 const double SENSOR_ERROR_PROB = 0.0;   // 0.0–1.0
-const int WALL_LAYERS[]       = [40, 30, 30]; // target % of map per layer
+const int WALL_LAYERS[]       = {40, 30, 30}; // target % of map per layer
 const int CLIFF_PROBABILITY   = 30;
 const int OBS_X_PROBABILITY   = 30;
 const unsigned int SEED       = 3141;
 ```
+
+---
+
+## AI Benchmark Results
+
+Each LLM was given the robot API and asked to write an exploration algorithm. Solutions were then debugged, optimized, and benchmarked across multiple seeds alongside a human-written solution.
+
+**300×200 map · 200,000 battery · 5 seeds average**
+
+| Rank | Solution | Avg Score | Strategy |
+|------|----------|-----------|----------|
+| 1 | Human | 20,204 | Frontier group flood-fill with size/distance heuristic |
+| 2 | Claude | 19,905 | Dijkstra pathfinding weighted by turn + move cost |
+| 3 | DeepSeek | 19,500 | Information-gain frontier scoring with greedy forward |
+| 4 | Gemini | 18,021 | Nearest-frontier BFS by Manhattan distance |
+| 5 | Copilot | 17,370 | Right-hand wall follow with BFS fallback |
+| 6 | Grok | 15,352 | Stack-based DFS with wall-following priority |
+| 7 | ChatGPT | 15,230 | Stack-based DFS with forward priority |
+
+See [`BENCHMARK.md`](BENCHMARK.md) for full analysis: per-seed results, efficiency ratios, cost-scenario experiments, and algorithm breakdowns.
+Note: These results do not reflect the LLM's intelligence. The prompts were open ended, and many purposely offered "simple" solutions.
 
 ---
 

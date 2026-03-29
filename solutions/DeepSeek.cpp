@@ -134,15 +134,33 @@ public:
         return gain;
     }
 
+    vector<vector<int>> computeDistanceMap() {
+        vector<vector<int>> dist(height, vector<int>(width, -1));
+        queue<pair<int,int>> q;
+        dist[robotY][robotX] = 0;
+        q.push({robotX, robotY});
+        while (!q.empty()) {
+            auto [cx, cy] = q.front(); q.pop();
+            for (int i = 0; i < 4; i++) {
+                int nx = cx + DX[i], ny = cy + DY[i];
+                if (!isInBounds(nx, ny)) continue;
+                if (dist[ny][nx] != -1) continue;
+                if (map[ny][nx].isExplored && map[ny][nx].isWall) continue;
+                dist[ny][nx] = dist[cy][cx] + 1;
+                q.push({nx, ny});
+            }
+        }
+        return dist;
+    }
+
     vector<ExplorationTarget> findExplorationTargets() {
         vector<ExplorationTarget> targets;
 
-        // Compute robot's facing vector for forward bias
         int fdx = 0, fdy = 0;
         ToVector(robotDir, fdx, fdy);
 
-        // Only evaluate frontier cells — unexplored cells adjacent to
-        // explored ones.
+        auto distMap = computeDistanceMap();
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (map[y][x].isExplored || map[y][x].isWall) continue;
@@ -160,14 +178,11 @@ public:
                 double gain = calculateInfoGain(x, y);
                 if (gain < INFO_GAIN_THRESHOLD) continue;
 
-                int actualDist = findPathDistance(x, y);
+                int actualDist = distMap[y][x];
                 if (actualDist > 0) {
-                    // Forward bias as tiebreaker only: tiny nudge so equal-value
-                    // targets prefer the one aligned with current heading
                     double tdx = x - robotX;
                     double tdy = y - robotY;
                     double dot = tdx * fdx + tdy * fdy;
-                    // 0.001 is small enough to never override a real value difference
                     double bias = (actualDist > 0) ? 0.001 * dot / actualDist : 0.0;
                     targets.emplace_back(x, y, gain, actualDist, bias);
                 }
@@ -175,37 +190,13 @@ public:
         }
 
         sort(targets.begin(), targets.end(),
-             [](const ExplorationTarget& a, const ExplorationTarget& b) {
-                 return a.value > b.value;
-             });
+            [](const ExplorationTarget& a, const ExplorationTarget& b) {
+                return a.value > b.value;
+            });
 
         if (targets.size() > 10) targets.resize(10);
         return targets;
     }
-
-    int findPathDistance(int targetX, int targetY) {
-        if (targetX == robotX && targetY == robotY) return 0;
-        vector<vector<bool>> closed(width, vector<bool>(height, false));
-        priority_queue<PathNode, vector<PathNode>, greater<PathNode>> open;
-        auto heuristic = [&](int x, int y) {
-            return abs(x - targetX) + abs(y - targetY);
-        };
-        open.emplace(robotX, robotY, 0, heuristic(robotX, robotY));
-        while (!open.empty()) {
-            PathNode cur = open.top(); open.pop();
-            if (cur.x == targetX && cur.y == targetY) return cur.g;
-            if (closed[cur.x][cur.y]) continue;
-            closed[cur.x][cur.y] = true;
-            for (int i = 0; i < 4; i++) {
-                int nx = cur.x + DX[i], ny = cur.y + DY[i];
-                if (!isInBounds(nx, ny) || closed[nx][ny]) continue;
-                if (map[ny][nx].isExplored && map[ny][nx].isWall) continue;
-                open.emplace(nx, ny, cur.g + 1, heuristic(nx, ny));
-            }
-        }
-        return -1;
-    }
-
     vector<pair<int,int>> planPath(int targetX, int targetY) {
         vector<pair<int,int>> path;
         if (targetX == robotX && targetY == robotY) return path;
