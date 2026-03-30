@@ -201,7 +201,7 @@ void MoveForward() {
 
 
     if (world[ny][nx] >= 0) {
-        // drainBattery(WALL_TYPE_DAMAGE[wallType]);
+        drainBattery(WALL_DATA[wallType].damage);
     }
     else {
         robot.x = nx;
