@@ -69,7 +69,7 @@ InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex);
 void MoveForward();
 void TurnLeft();    // only turns, does not move forward after
 void TurnRight();
-
+void TurnToDirection(Direction d); // will perform minimal turns
 
 // ----------------------
 // Robot Queries
@@ -82,6 +82,8 @@ bool HasBattery();
 Direction GetDirection();
 int GetScore();
 bool InRange(int x, int y);
+bool TileVisited(int x, int y);
+
 // ----------------------
 // Boilerplate
 // ----------------------

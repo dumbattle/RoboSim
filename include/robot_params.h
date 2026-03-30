@@ -23,16 +23,30 @@ struct WallData {
     int restPeriod[2];
 };
 
+// const WallData WALL_DATA[] = {
+//     {
+//         50,                                 // Damage
+//         { {-10, 10}, {-5, 25}, {0, 55} },   // errorRanges
+//         25,                                 // transitionTime
+//         { 15, 25 }                          // restPeriod
+//     },
+//     {
+//         500,                                // Damage
+//         { {-10,  5}, {-5, 15}, {0, 35} },   // errorRanges
+//         20,                                 // transitionTime
+//         { 25, 40 }                          // restPeriod
+//     }
+// };
 const WallData WALL_DATA[] = {
     {
         50,                                 // Damage
-        { {-10, 10}, {-5, 25}, {0, 55} },   // errorRanges
+        { {25, 55} },   // errorRanges
         25,                                 // transitionTime
         { 15, 25 }                          // restPeriod
     },
     {
         500,                                // Damage
-        { {-10,  5}, {-5, 15}, {0, 35} },   // errorRanges
+        { {15, 35} },   // errorRanges
         20,                                 // transitionTime
         { 25, 40 }                          // restPeriod
     }

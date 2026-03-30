@@ -35,8 +35,8 @@
 
 ## New API — helpers
 
-- [ ] `TurnToDirection(Direction d)` — shortest rotation
-- [ ] `TileVisited(x, y)` — auto-tracked
+- [X] `TurnToDirection(Direction d)` — shortest rotation
+- [X] `TileVisited(x, y)` — auto-tracked
 - [X] Scan memory / confidence tracking (internal bookkeeping)
 
 ## New API — state machine
@@ -55,10 +55,10 @@
 
 ## Parameters (robot_params.h)
 
-- [ ] `WALL_COLLISION_COST` — energy drained on wall hit
-- [ ] `CLIFF_KILLS` — bool, cliff collision is fatal
-- [ ] Error rate wave parameters (amplitude, frequency, phase offset per scanner)
-- [ ] Error rate floor/ceiling bounds
+- [X] `WALL_COLLISION_COST` — energy drained on wall hit
+- [X] `CLIFF_KILLS` — bool, cliff collision is fatal
+- [X] Error rate wave parameters (amplitude, frequency, phase offset per scanner)
+- [X] Error rate floor/ceiling bounds
 
 ## Documentation
 

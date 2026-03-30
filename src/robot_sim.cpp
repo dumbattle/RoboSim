@@ -235,6 +235,25 @@ void TurnRight() {
     printMap();
 }
 
+void TurnToDirection(Direction d) {
+    if (robot.dir == d) {
+        return;
+    }
+
+    if (Right(robot.dir) == d) {
+        TurnRight();
+    }
+    else if(Left(robot.dir) == d)  {
+        TurnLeft();
+    }
+    else {
+        TurnRight();
+        TurnRight();
+    }
+}
+
+
+
 void ScanAhead(int obstacleIndex) {
     Tick();
 
@@ -262,7 +281,7 @@ void ScanAhead(int obstacleIndex) {
     GetErrorRates(obstacleIndex, fp, fn);
 
     // Skip: pure noise — scan carries no information
-    if (fp >= 50 || fn >= 50) return;
+    if (fp >= 50 && fn >= 50) return;
 
     float fpRate = fp / 100.0f;
     float fnRate = fn / 100.0f;
@@ -386,6 +405,11 @@ int GetScore() {
             if (_visited[r][c]) n++;
     return n;
 }
+
+bool TileVisited(int x, int y) {
+    return _visited[y][x];
+}
+
 
 void PrintResults() {
     
