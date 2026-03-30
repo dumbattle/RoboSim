@@ -31,13 +31,13 @@
 - [X] `GetErrorRates(ObstacleType) → float falsePos, float falseNeg`
 - [X] `GetErrorDeltas(ObstacleType) → float fpDelta, float fnDelta`
 - [X] `GetTileConfidence(x, y) → int[]` (indexed by obstacle type)
-- [ ] `GetExpectedInfoGain(x, y, ObstacleType) → float`
+- [X] `GetExpectedInfoGain(x, y, ObstacleType) → InfoGain`
 
 ## New API — helpers
 
 - [ ] `TurnToDirection(Direction d)` — shortest rotation
 - [ ] `TileVisited(x, y)` — auto-tracked
-- [ ] Scan memory / confidence tracking (internal bookkeeping)
+- [X] Scan memory / confidence tracking (internal bookkeeping)
 
 ## New API — state machine
 

@@ -42,8 +42,22 @@ void ScanAhead(int obstacleIndex);
 float GetTileConfidence(int x, int y, int obstacleIndex);
 
 // index 0 => empty tile
-// index N => wall type N-1
+// index N => obstacle type N-1
 void GetTileConfidence(int x, int y, float (&results)[TILE_TYPE_COUNT]);
+
+// All values normalized to [-1, 1] (entropy deltas) or [0, 1] (probabilities, expected)
+struct InfoGain {
+    float expected;          // E[entropy reduction] weighted by outcome probabilities - [0, 1]
+
+    float probPositive;      // P(obstacle detected)     - [0, 1]
+    float deltaIfPositive;   // entropy reduction if scan fires   - [-1, 1]
+
+    float probNegative;      // P(obstacle not detected) - [0, 1]
+    float deltaIfNegative;   // entropy reduction if scan silent  - [-1, 1]
+};
+
+// Pure query - no battery cost, no state changes.
+InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex);
 
 
 // ----------------------

@@ -5,6 +5,7 @@
 #include "display.h"
 #include <iostream>
 #include <cstdlib>
+#include <cmath>
 #include <algorithm>
 
 using namespace std;
@@ -302,6 +303,59 @@ void GetTileConfidence(int x, int y, float (&results)[TILE_TYPE_COUNT]) {
     for (int i = 0; i < TILE_TYPE_COUNT; i++) {
         results[i] = _confidence[y][x][i];
     }
+}
+
+InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex) {
+    const float MAX_ENTROPY = log2f((float)TILE_TYPE_COUNT);
+    const float* prior = _confidence[y][x].data();
+
+    // Current entropy
+    float hBefore = 0.0f;
+    for (int i = 0; i < TILE_TYPE_COUNT; i++)
+        if (prior[i] > 0.0f) hBefore -= prior[i] * log2f(prior[i]);
+
+    int fp, fn;
+    GetErrorRates(obstacleIndex, fp, fn);
+    float fpRate = fp / 100.0f;
+    float fnRate = fn / 100.0f;
+
+    // P(scan fires) = P(true positive) + P(false positive)
+    float pPos = prior[obstacleIndex + 1] * (1.0f - fnRate)
+               + (1.0f - prior[obstacleIndex + 1]) * fpRate;
+    float pNeg = 1.0f - pPos;
+
+    // Compute entropy of posterior for a given outcome (true/false)
+    auto posteriorEntropy = [&](bool outcome) -> float {
+        float post[TILE_TYPE_COUNT];
+        float total = 0.0f;
+        for (int i = 0; i < TILE_TYPE_COUNT; i++) {
+            bool isTarget = (i == obstacleIndex + 1);
+            float likelihood = outcome
+                ? (isTarget ? (1.0f - fnRate) : fpRate)
+                : (isTarget ? fnRate           : (1.0f - fpRate));
+            post[i] = prior[i] * likelihood;
+            total += post[i];
+        }
+        float h = 0.0f;
+        if (total > 0.0f)
+            for (int i = 0; i < TILE_TYPE_COUNT; i++) {
+                float p = post[i] / total;
+                if (p > 0.0f) h -= p * log2f(p);
+            }
+        return h;
+    };
+
+    float hIfPos = posteriorEntropy(true);
+    float hIfNeg = posteriorEntropy(false);
+
+    // Entropy deltas, normalized to [-1, 1]
+    float dPos = (hBefore - hIfPos) / MAX_ENTROPY;
+    float dNeg = (hBefore - hIfNeg) / MAX_ENTROPY;
+
+    // Expected info gain, normalized to [0, 1]
+    float expected = (pPos * dPos + pNeg * dNeg);
+
+    return { expected, pPos, dPos, pNeg, dNeg };
 }
 
 
