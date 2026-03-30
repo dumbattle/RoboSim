@@ -14,7 +14,7 @@ mt19937 rng;
 // ----------------------
 // Utilities
 // ----------------------
-bool inRange(int x, int y) {
+bool InRange(int x, int y) {
     return x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT;
 }
 
@@ -24,7 +24,7 @@ static vector<pair<int,int>> neighbors4(int x, int y) {
     const int dy[4] = {0,  0, 1, -1};
     for (int i = 0; i < 4; i++) {
         int nx = x + dx[i], ny = y + dy[i];
-        if (inRange(nx, ny)) n.push_back({nx, ny});
+        if (InRange(nx, ny)) n.push_back({nx, ny});
     }
     return n;
 }
@@ -44,7 +44,7 @@ static bool adjacent8(int x, int y, int layer, const Group* group = nullptr) {
     for (int dy = -1; dy <= 1; dy++) {
         if (dx == 0 && dy == 0) continue;
         int nx = x + dx, ny = y + dy;
-        if (!inRange(nx, ny)) continue;
+        if (!InRange(nx, ny)) continue;
         if (wallLayers[ny][nx] != layer) continue;
         if (group) {
             bool inSameGroup = false;
@@ -98,7 +98,7 @@ static void generateType(int layer, int expected, int wallType) {
         int y = g.queue[qi].second;
         g.queue.erase(g.queue.begin() + qi);
 
-        if (!inRange(x, y) || world[y][x] != -1 || adjacent8(x, y, layer, &g)) {
+        if (!InRange(x, y) || world[y][x] != -1 || adjacent8(x, y, layer, &g)) {
             attempts++;
             continue;
         }

@@ -162,6 +162,15 @@ void Reset(long randomSeed) {
     _visited[robot.y][robot.x] = true;
 
     numMoves = numTurns = numScans = 0;
+
+
+
+    for(int i = 0; i < 100; i++) {
+        Tick();
+    }
+
+
+
     printMap();
 }
 
@@ -233,7 +242,7 @@ void ScanAhead(int obstacleIndex) {
     int nx = robot.x + dx;
     int ny = robot.y + dy;
 
-    if (!inRange(nx, ny)) return;
+    if (!InRange(nx, ny)) return;
 
     auto& conf = _confidence[ny][nx];
 

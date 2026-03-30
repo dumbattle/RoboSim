@@ -67,7 +67,7 @@ int GetBattery();
 bool HasBattery();
 Direction GetDirection();
 int GetScore();
-
+bool InRange(int x, int y);
 // ----------------------
 // Boilerplate
 // ----------------------
