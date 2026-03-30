@@ -19,11 +19,11 @@
 
 ## Dynamic error rates
 
-- [ ] Per-obstacle false positive rate (says obstacle, actually open)
-- [ ] Per-obstacle false negative rate (says open, actually obstacle)
-- [ ] Continuous slow change over time (sine wave, random walk, or similar)
-- [ ] Rates independent per obstacle type
-- [ ] Rates are global (same for all tiles at a given tick)
+- [X] Per-obstacle false positive rate (says obstacle, actually open)
+- [X] Per-obstacle false negative rate (says open, actually obstacle)
+- [X] Continuous slow change over time (sine wave, random walk, or similar)
+- [X] Rates independent per obstacle type
+- [X] Rates are global (same for all tiles at a given tick)
 
 
 ## New API — sensor information

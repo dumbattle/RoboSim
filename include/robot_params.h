@@ -1,6 +1,6 @@
 #ifndef ROBOT_PARAMS_H
 #define ROBOT_PARAMS_H
-
+#include <vector>
 
 
 // ----------------------
@@ -9,12 +9,45 @@
 const int MAP_WIDTH = 150;
 const int MAP_HEIGHT = 100;
 
-const int WALL_LAYER_TYPES[]  = { 0, 0, 1};   // % chance
-const int WALL_LAYERS[]       = { 40, 30, 30};   // % chance
-const int WALL_TYPE_DAMAGE[] = { 50, 500 };
 
-const int WALL_TYPE_COUNT = sizeof(WALL_TYPE_DAMAGE) / sizeof(WALL_TYPE_DAMAGE[0]);
+
+// ----------------------
+// SensorErrors
+// ----------------------
+
+
+struct WallData {
+    int damage;
+    std::vector<std::vector<int>> errorRanges;
+    int transitionTime;
+    int restPeriod[2];
+};
+
+const WallData WALL_DATA[] = {
+    {
+        50,                                 // Damage
+        { {-10, 10}, {-5, 25}, {0, 55} },   // errorRanges
+        25,                                 // transitionTime
+        { 15, 25 }                          // restPeriod
+    },
+    {
+        500,                                // Damage
+        { {-10,  5}, {-5, 15}, {0, 35} },   // errorRanges
+        20,                                 // transitionTime
+        { 25, 40 }                          // restPeriod
+    }
+};
+
+
+const int WALL_TYPE_COUNT = sizeof(WALL_DATA) / sizeof(WALL_DATA[0]);
 const int TILE_TYPE_COUNT = WALL_TYPE_COUNT + 1;
+
+// ----------------------
+// Walls
+// ----------------------
+
+const int WALL_LAYER_TYPES[]  = { 0, 0, 1};   
+const int WALL_LAYERS[]       = { 40, 30, 30};   // % chance
 
 // ----------------------
 // Battery Costs

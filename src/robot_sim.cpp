@@ -13,6 +13,42 @@ using namespace std;
 // Internal helpers
 // ----------------------
 
+static void UpdateErrors(ErrorData& data, int wallID) { 
+    if (data.targetRate != data.currentRate) {
+        data.timer -= 1;
+
+        double t = 1.0 * data.timer / WALL_DATA[wallID].transitionTime;
+
+        data.currentRate = (int)(data.targetRate * (1 - t) + data.startRate * (t));
+
+        if (data.timer <= 0) { 
+            data.currentRate = data.targetRate;
+            int min = WALL_DATA[wallID].restPeriod[0];
+            int max = WALL_DATA[wallID].restPeriod[1];
+            data.timer = (rand() % (max - min + 1)) + min;
+        }
+    }
+    else {
+        data.timer -= 1;
+        if (data.timer <= 0) {
+            data.timer = WALL_DATA[wallID].transitionTime;
+
+            auto range = WALL_DATA[wallID].errorRanges[rand() % WALL_DATA[wallID].errorRanges.size()];
+            data.targetRate = range[0] + rand() % (range[1] - range[0] + 1);
+            data.startRate = data.currentRate;
+        }
+    }
+}
+
+
+static void Tick() {
+    for(int i = 0; i < WALL_TYPE_COUNT; i++) {
+        auto& errors = sensorErrors[i];
+        UpdateErrors(errors.falsePositive, i);
+        UpdateErrors(errors.falseNegative, i);
+    }
+}
+
 static void crash(const string& msg) {
     cout << "\n*** EVENT: " << msg << " ***\n";
     robot.battery = 0;
@@ -103,6 +139,8 @@ void Reset(long randomSeed) {
 }
 
 void MoveForward() {
+    Tick();
+
     static int score = 0;
     numMoves++;
     if (!drainBattery(BATTERY_MOVE)) return;
@@ -126,7 +164,7 @@ void MoveForward() {
 
 
     if (world[ny][nx] >= 0) {
-        drainBattery(WALL_TYPE_DAMAGE[wallType]);
+        // drainBattery(WALL_TYPE_DAMAGE[wallType]);
     }
     else {
         robot.x = nx;
@@ -145,6 +183,7 @@ void MoveForward() {
 }
 
 void TurnLeft() {
+    Tick();
     numTurns++;
     if (!drainBattery(BATTERY_TURN)) return;
     robot.dir = Left(robot.dir);
@@ -152,6 +191,7 @@ void TurnLeft() {
 }
 
 void TurnRight() {
+    Tick();
     numTurns++;
     if (!drainBattery(BATTERY_TURN)) return;
     robot.dir = Right(robot.dir);

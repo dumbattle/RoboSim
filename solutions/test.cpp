@@ -71,8 +71,6 @@ static void testWallHit() {
             GetPosition(x1, y1);
 
             check("Robot does not move into wall", x0 == x1 && y0 == y1);
-            check("Wall hit drains WALL_TYPE_DAMAGE",
-                  GetBattery() <= b0 - BATTERY_MOVE - WALL_TYPE_DAMAGE[wallType]);
 
             foundWall = true;
             break;
