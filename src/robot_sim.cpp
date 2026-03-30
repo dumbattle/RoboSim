@@ -87,7 +87,7 @@ void Reset(long randomSeed) {
     initDisplay();
 
     _visited.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));
-    _seen.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));
+    _confidence.assign(MAP_HEIGHT, vector<vector<float>>(MAP_WIDTH, vector<float>(WALL_TYPE_COUNT + 1, 1.0 /  (WALL_TYPE_COUNT + 1))));
     generateWorld(randomSeed);
 
     pair<int,int> start = randomEmptyTile();
@@ -118,6 +118,12 @@ void MoveForward() {
 
     int wallType = world[ny][nx];
 
+        
+    for (int i = 0; i < WALL_TYPE_COUNT + 1; i++) {
+        _confidence[ny][nx][i] = 0; 
+    }
+    _confidence[ny][nx][wallType + 1] = 1;
+
 
     if (world[ny][nx] >= 0) {
         drainBattery(WALL_TYPE_DAMAGE[wallType]);
@@ -135,7 +141,6 @@ void MoveForward() {
         }
     }
    
-    _seen[ny][nx] = true;
     printMap();
 }
 
@@ -165,7 +170,7 @@ bool IsWallAhead(int wallType) {
 
     bool result = world[ny][nx] == wallType;
     if (inRange(nx, ny)) {
-        _seen[ny][nx] = true;
+        // _seen[ny][nx] = true;
     }
     return result;
 }
@@ -174,6 +179,7 @@ void GetPosition(int& x, int& y) {
     x = robot.x;
     y = robot.y;
 }
+
 Direction GetDirection() {
     return robot.dir;
 }
@@ -181,9 +187,11 @@ Direction GetDirection() {
 int GetBattery() {
     return robot.battery;
 }
+
 bool HasBattery() {
     return robot.battery > 0;
 }
+
 int GetScore() {
     int n = 0;
     for (size_t r = 0; r < _visited.size(); r++)
@@ -196,6 +204,4 @@ void PrintResults() {
     
     printStatus();
 }
-void PrintStatus() {
-    PrintResults();
-}
+

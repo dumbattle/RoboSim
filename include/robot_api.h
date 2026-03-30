@@ -18,7 +18,6 @@ void Translate(int& x, int& y, Direction d);
 
 std::string ToString(Direction d);
 
-
 // ----------------------
 // API
 // ----------------------
@@ -46,7 +45,5 @@ int GetScore();
 // Call this at end of script
 void PrintResults();
 
-// OLD VERSION DO NOT USE
-void PrintStatus();
 #endif
 

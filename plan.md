@@ -10,12 +10,12 @@
 - [X] Configure energy drain amount for wall collision
 
 ## Confidence
-- [ ] Refactor `_seen` as confidence values for each tile type
+- [X] Refactor `_seen` into confidence values for each tile type
 - [ ] Replace `IsWallAhead` with `ScanAhead`
 - [ ] update confidence values after each scan
 - [ ] If confidence is 100%, abort scan
 - [ ] Expose Confidence Queries
-- [ ] Walking onto open tile or into wall sets confidence to 100%
+- [X] Walking onto open tile or into wall sets confidence to 100%
 
 ## Dynamic error rates
 
@@ -25,11 +25,6 @@
 - [ ] Rates independent per obstacle type
 - [ ] Rates are global (same for all tiles at a given tick)
 
-## Scanner behavior
-
-- [ ] `IsWallAhead()` / `IsCliffAhead()` apply current error rates to results
-- [ ] Moving onto a tile grants 100% accurate discovery for all obstacle types
-- [ ] Scans auto-skip sensor query when tile confidence is already 100%
 
 ## New API — sensor information
 

@@ -5,7 +5,7 @@ using namespace std;
 
 Robot robot;
 vector<vector<bool>> _visited;
-vector<vector<bool>> _seen;
+std::vector<std::vector<std::vector<float>>> _confidence;
 int numMoves = 0;
 int numTurns = 0;
 int numScans = 0;

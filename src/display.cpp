@@ -133,10 +133,19 @@ static sf::Color tileColour(int x, int y) {
     else {
         result = _visited[y][x] ? COLOR_VISITED : COLOR_UNVISITED;
     }
+    auto c = _confidence[y][x];
 
-    if (!_seen[y][x]) {
-        result *= sf::Color(48, 48, 48);
+    float max_c = 0;
+
+    for (int i = 0; i < WALL_TYPE_COUNT + 1; i++) {
+        max_c = max_c > c[i] ? max_c : c[i];
     }
+
+    const int MIN = 0;
+    const int MAX = 255;
+
+    int t = (int)(max_c * (MAX - MIN) + MIN);
+    result *= sf::Color(t, t, t);
 
     return result;
 }

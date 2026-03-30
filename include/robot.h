@@ -11,7 +11,7 @@ struct Robot {
 
 extern Robot robot;
 extern std::vector<std::vector<bool>> _visited;
-extern std::vector<std::vector<bool>> _seen;
+extern std::vector<std::vector<std::vector<float>>> _confidence;
 extern int numMoves;
 extern int numTurns;
 extern int numScans;
