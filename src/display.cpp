@@ -126,9 +126,12 @@ static void drawHUD() {
 static sf::Color tileColour(int x, int y) {
     if (x == robot.x && y == robot.y) return COLOR_ROBOT;
     sf::Color result;
-    switch (world[y][x]) {
-        case WALL:  result = COLOR_WALL; break;
-        default:    result = _visited[y][x] ? COLOR_VISITED : COLOR_UNVISITED; break;
+
+    if (world[y][x] >= 0) {
+        result = COLOR_WALL;
+    }
+    else {
+        result = _visited[y][x] ? COLOR_VISITED : COLOR_UNVISITED;
     }
 
     if (!_seen[y][x]) {

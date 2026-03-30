@@ -95,7 +95,7 @@ void Reset(long randomSeed) {
     robot.y       = start.second;
     robot.dir     = EAST;
     robot.battery = MAX_BATTERY;
-    world[robot.y][robot.x] = EMPTY;
+    world[robot.y][robot.x] = -1;
     _visited[robot.y][robot.x] = true;
 
     numMoves = numTurns = numScans = 0;
@@ -110,31 +110,32 @@ void MoveForward() {
     ToVector(robot.dir, dx, dy);
     int nx = robot.x + dx;
     int ny = robot.y + dy;
+
     if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) {
         crash("Robot fell off the map!");
         return;
     }
 
-    switch (world[ny][nx]) {
-        case WALL:
-            crash("Robot ran into a wall!");
-            return;
-        default:
-            robot.x = nx;
-            robot.y = ny;
+    int wallType = world[ny][nx];
 
-            if (!_visited[robot.y][robot.x]) {
-                score++;
-                if ((score % SCORE_REPORT_INTERVAL == 0) && SCORE_REPORT_INTERVAL > 0) {
-                    cout << "SCORED " << score << " at " << MAX_BATTERY - robot.battery << " energy used." << endl;
-                }
-            }
 
-            _visited[robot.y][robot.x] = true;
-            _seen[robot.y][robot.x] = true;
-            break;
+    if (world[ny][nx] >= 0) {
+        drainBattery(WALL_TYPE_DAMAGE[wallType]);
     }
+    else {
+        robot.x = nx;
+        robot.y = ny;
 
+        if (!_visited[robot.y][robot.x]) {
+            _visited[robot.y][robot.x] = true;
+            score++;
+            if ((score % SCORE_REPORT_INTERVAL == 0) && SCORE_REPORT_INTERVAL > 0) {
+                cout << "SCORED " << score << " at " << MAX_BATTERY - robot.battery << " energy used." << endl;
+            }
+        }
+    }
+   
+    _seen[ny][nx] = true;
     printMap();
 }
 
@@ -152,7 +153,7 @@ void TurnRight() {
     printMap();
 }
 
-bool IsWallAhead() {
+bool IsWallAhead(int wallType) {
     numScans++;
     int cost = BATTERY_QUERY_MIN + rand() % (BATTERY_QUERY_MAX - BATTERY_QUERY_MIN + 1);
     if (!drainBattery(cost)) return false;
@@ -162,7 +163,7 @@ bool IsWallAhead() {
     int nx = robot.x + dx;
     int ny = robot.y + dy;
 
-    bool result = !inRange(nx, ny) || world[ny][nx] == WALL;
+    bool result = world[ny][nx] == wallType;
     if (inRange(nx, ny)) {
         _seen[ny][nx] = true;
     }
@@ -197,67 +198,4 @@ void PrintResults() {
 }
 void PrintStatus() {
     PrintResults();
-}
-
-// ----------------------
-// Educational
-// ----------------------
-
-// randomly turn (without moving) or move forward. 
-// if forward is blocked, will guarantee turn
-// chanceTurn: 0–100 (% chance to turn)
-void ForwardOrLeft(int chanceTurn) {
-    int r = rand() % 100;
-
-    // If blocked, must turn
-    if (IsWallAhead()) {
-        TurnLeft();
-        return;
-    }
-
-    if (r < chanceTurn) {
-        TurnLeft();
-    }
-    else {
-        MoveForward();
-    }
-}
-
-void ForwardOrRight(int chanceTurn) {
-    int r = rand() % 100;
-
-    // If blocked, must turn
-    if (IsWallAhead()) {
-        TurnRight();
-        return;
-    }
-
-    if (r < chanceTurn) {
-        TurnRight();
-    }
-    else {
-        MoveForward();
-    }
-}
-
-void RandomSafeMove() {
-    // Create all 4 directions
-    std::vector<Direction> dirs = { NORTH, EAST, SOUTH, WEST };
-
-    // Shuffle directions randomly
-    std::shuffle(dirs.begin(), dirs.end(), rng);
-
-    // Try each direction in random order
-    for (Direction d : dirs) {
-        // Turn to face that direction
-        while (GetDirection() != d) {
-            TurnRight();
-        }
-
-        // Check if safe
-        if (!IsWallAhead()) {
-            MoveForward();
-            return;
-        }
-    }
 }

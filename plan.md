@@ -5,9 +5,17 @@
 - [X] Add `ObstacleType` enum (WALL, CLIFF)
 - [X] Modify world generation to place walls and cliffs as separate types
 - [X] Implement obstacle clustering by type (existing layer system supports this)
-- [ ] Wall collision drains energy instead of killing
-- [ ] Cliff collision kills instantly (or drains alot)
+- [X] Wall collision drains energy instead of killing
+- [X] Cliff collision kills instantly (or drains alot)
 - [X] Configure energy drain amount for wall collision
+
+## Confidence
+- [ ] Refactor `_seen` as confidence values for each tile type
+- [ ] Replace `IsWallAhead` with `ScanAhead`
+- [ ] update confidence values after each scan
+- [ ] If confidence is 100%, abort scan
+- [ ] Expose Confidence Queries
+- [ ] Walking onto open tile or into wall sets confidence to 100%
 
 ## Dynamic error rates
 

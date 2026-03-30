@@ -18,18 +18,6 @@ void Translate(int& x, int& y, Direction d);
 
 std::string ToString(Direction d);
 
-// ----------------------
-// Educational
-// ----------------------
-
-// any of 4 directions
-void RandomSafeMove();
-
-// randomly turn (without moving) or move forward. 
-// if forward is blocked, will guarantee turn
-// chance from 0-100 %
-void ForwardOrLeft(int chanceTurn);
-void ForwardOrRight(int chanceTurn); 
 
 // ----------------------
 // API
@@ -45,7 +33,7 @@ void TurnRight();
 
 // Sensors 
 // These cost energy, make sure they are not wasted!
-bool IsWallAhead();
+bool IsWallAhead(int wallType);
 
 // Info
 // Do not cost energy
