@@ -28,8 +28,8 @@
 
 ## New API — sensor information
 
-- [ ] `GetErrorRates(ObstacleType) → float falsePos, float falseNeg`
-- [ ] `GetErrorDeltas(ObstacleType) → float fpDelta, float fnDelta`
+- [X] `GetErrorRates(ObstacleType) → float falsePos, float falseNeg`
+- [X] `GetErrorDeltas(ObstacleType) → float fpDelta, float fnDelta`
 - [ ] `GetTileConfidence(x, y) → int[]` (indexed by obstacle type)
 - [ ] `GetExpectedInfoGain(x, y, ObstacleType) → float`
 

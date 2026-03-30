@@ -19,6 +19,16 @@ void Translate(int& x, int& y, Direction d);
 std::string ToString(Direction d);
 
 // ----------------------
+// Sensors
+// ----------------------
+
+// obstacle index in range [0, WALL_TYPE_COUNT)
+// error rates in range [0-50]%
+void GetErrorRates(int obstacleIndex, int& falsePositive, int& falseNegative);
+
+void GetErrorDeltas(int obstacleIndex, float& falsePositiveRate, float& falseNegativeRate);
+
+// ----------------------
 // API
 // ----------------------
 

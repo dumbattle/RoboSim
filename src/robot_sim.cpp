@@ -65,7 +65,34 @@ static bool drainBattery(int cost) {
 }
 
 // ----------------------
-// Public Helpers
+// Sensor API
+// ----------------------
+
+void GetErrorRates(int obstacleIndex, int& falsePositive, int& falseNegative) {
+    auto& errors = sensorErrors[obstacleIndex];
+    falsePositive = errors.falsePositive.currentRate;
+    falseNegative = errors.falseNegative.currentRate;
+
+    if (falsePositive < 0) falsePositive = 0;
+    if (falseNegative < 0) falseNegative = 0;
+    if (falsePositive > 50) falsePositive = 50;
+    if (falseNegative > 50) falseNegative = 50;
+}
+
+
+void GetErrorDeltas(int obstacleIndex, float& falsePositive, float& falseNegative) {
+    auto errors = sensorErrors[obstacleIndex];
+    auto& fp = errors.falsePositive;
+    auto& fn = errors.falseNegative;
+
+    falsePositive = fp.timer == 0 ? 0 : (fp.targetRate - fp.currentRate) / fp.timer;
+    falseNegative = fn.timer == 0 ? 0 : (fn.targetRate - fn.currentRate) / fn.timer;
+}
+
+
+
+// ----------------------
+// Direction API
 // ----------------------
 
 Direction Left(Direction d) {
