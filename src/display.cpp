@@ -137,11 +137,13 @@ static sf::Color tileColour(int x, int y) {
 
     float max_c = 0;
 
-    for (int i = 0; i < WALL_TYPE_COUNT + 1; i++) {
+    for (int i = 0; i < TILE_TYPE_COUNT; i++) {
         max_c = max_c > c[i] ? max_c : c[i];
     }
 
-    const int MIN = 0;
+    max_c = (max_c - (1.0 / TILE_TYPE_COUNT)) / (1 - 1.0 / TILE_TYPE_COUNT);
+
+    const int MIN = 48;
     const int MAX = 255;
 
     int t = (int)(max_c * (MAX - MIN) + MIN);

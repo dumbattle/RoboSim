@@ -87,7 +87,7 @@ void Reset(long randomSeed) {
     initDisplay();
 
     _visited.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));
-    _confidence.assign(MAP_HEIGHT, vector<vector<float>>(MAP_WIDTH, vector<float>(WALL_TYPE_COUNT + 1, 1.0 /  (WALL_TYPE_COUNT + 1))));
+    _confidence.assign(MAP_HEIGHT, vector<vector<float>>(MAP_WIDTH, vector<float>(TILE_TYPE_COUNT, 1.0 /  TILE_TYPE_COUNT)));
     generateWorld(randomSeed);
 
     pair<int,int> start = randomEmptyTile();
@@ -119,7 +119,7 @@ void MoveForward() {
     int wallType = world[ny][nx];
 
         
-    for (int i = 0; i < WALL_TYPE_COUNT + 1; i++) {
+    for (int i = 0; i < TILE_TYPE_COUNT; i++) {
         _confidence[ny][nx][i] = 0; 
     }
     _confidence[ny][nx][wallType + 1] = 1;

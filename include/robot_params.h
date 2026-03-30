@@ -13,7 +13,8 @@ const int WALL_LAYER_TYPES[]  = { 0, 0, 1};   // % chance
 const int WALL_LAYERS[]       = { 40, 30, 30};   // % chance
 const int WALL_TYPE_DAMAGE[] = { 50, 500 };
 
-const int WALL_TYPE_COUNT = 2;
+const int WALL_TYPE_COUNT = sizeof(WALL_TYPE_DAMAGE) / sizeof(WALL_TYPE_DAMAGE[0]);
+const int TILE_TYPE_COUNT = WALL_TYPE_COUNT + 1;
 
 // ----------------------
 // Battery Costs
