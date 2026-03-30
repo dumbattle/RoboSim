@@ -533,7 +533,7 @@ int main() {
     ++exploredCount;
     ++seenCount;
 
-    while (true) {
+    while (HasBattery()) {
         if (!doExplorationStep(curX, curY, curDir)) break;
     }
 

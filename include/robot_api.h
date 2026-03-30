@@ -39,7 +39,7 @@ void ForwardOrRight(int chanceTurn);
 void Reset(long seed = -1);
 
 // Movement - These all cost energy
-void MoveForward(); // Ends program if you run into a wall or cliff
+void MoveForward();
 void TurnLeft();    // only turns, does not move forawrd after
 void TurnRight();
 
@@ -51,6 +51,7 @@ bool IsWallAhead();
 // Do not cost energy
 void GetPosition(int& x, int& y);
 int GetBattery();
+bool HasBattery();
 Direction GetDirection();
 int GetScore();
 

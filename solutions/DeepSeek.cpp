@@ -89,7 +89,7 @@ public:
     // Returns true if tile ahead is a wall. Uses memory first, only
     // queries sensor if the tile is still unexplored.
     bool senseAhead() {
-        if (battery <= 0) return true;
+        if (!HasBattery()) return true;
         int aheadX = robotX, aheadY = robotY;
         Translate(aheadX, aheadY, robotDir);
 
@@ -253,7 +253,7 @@ public:
     }
 
     void turnToward(Direction targetDir) {
-        while (robotDir != targetDir && battery > 0) {
+        while (robotDir != targetDir && HasBattery()) {
             int diff = (targetDir - robotDir + 4) % 4;
             if (diff <= 2) TurnRight();
             else           TurnLeft();
@@ -263,7 +263,7 @@ public:
 
     void moveAlongPath(const vector<pair<int,int>>& path) {
         for (const auto& [nextX, nextY] : path) {
-            if (battery <= 0) return;
+            if (!HasBattery()) return;
 
             int dx = nextX - robotX;
             int dy = nextY - robotY;
@@ -279,7 +279,7 @@ public:
 
             turnToward(targetDir);
 
-            if (battery <= 0) return;
+            if (!HasBattery()) return;
 
             // Sense before moving — uses memory if already known
             bool wallAhead = senseAhead();
@@ -300,16 +300,16 @@ public:
     }
 
     void performSpiralSearch() {
-        if (battery <= 0) return;
+        if (!HasBattery()) return;
 
-        for (int i = 0; i < 4 && battery > 0; i++) {
+        for (int i = 0; i < 4 && HasBattery(); i++) {
             Direction targetDir = static_cast<Direction>((spiralDirIndex + i) % 4);
             turnToward(targetDir);
 
             bool wallAhead = senseAhead();
             updateState();
 
-            if (battery > 0 && !wallAhead) {
+            if (HasBattery() && !wallAhead) {
                 MoveForward();
                 updateState();
                 if (++spiralStep >= spiralLength) {
@@ -321,7 +321,7 @@ public:
             }
         }
 
-        if (battery > 0) { TurnRight(); updateState(); }
+        if (HasBattery()) { TurnRight(); updateState(); }
     }
 
     // Try to step forward without pathfinding. Returns true if moved.
@@ -342,7 +342,7 @@ public:
     void run() {
         updateState();
 
-        while (battery > 0) {
+        while (HasBattery()) {
             // Greedy: if tile ahead is open and unvisited, just go
             if (greedyForward()) continue;
 

@@ -61,7 +61,7 @@ int main() {
     updatePose();
     path.push({curX, curY});
 
-    while (GetBattery() > 50) {
+    while (HasBattery()) {
         // Right-hand wall following: right > forward > left
         Direction prio[3];
         prio[0] = Right(curDir);

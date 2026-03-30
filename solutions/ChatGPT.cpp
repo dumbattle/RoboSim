@@ -92,7 +92,7 @@ void Explore()
     visited[rx][ry] = true;
     path.push({rx,ry});
 
-    while(!path.empty())
+    while(!path.empty() && HasBattery())
     {
         bool moved = false;
 

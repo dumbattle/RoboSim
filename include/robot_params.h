@@ -5,8 +5,8 @@
 // ----------------------
 // Map Parameters
 // ----------------------
-const int MAP_WIDTH = 300;
-const int MAP_HEIGHT = 200;
+const int MAP_WIDTH = 150;
+const int MAP_HEIGHT = 100;
 
 
 // GOOD FOR LARGE MAPS
@@ -15,7 +15,7 @@ const int WALL_LAYERS[]  = {40, 30, 30};   // % chance
 // ----------------------
 // Battery Costs
 // ----------------------
-const int MAX_BATTERY = 200'000;        
+const int MAX_BATTERY = 50'000;        
 
 const int BATTERY_MOVE = 5;           // cost per MoveForward()
 const int BATTERY_TURN = 3;           // cost per TurnLeft/TurnRight()
@@ -23,17 +23,12 @@ const int BATTERY_QUERY_MIN = 1;      // cost per sensor query
 const int BATTERY_QUERY_MAX = 3;      // max cost per sensor query
 
 // ----------------------
-// Sensor Error
-// ----------------------
-const double SENSOR_ERROR_PROB = 0.0;  // probability chance to return incorrect info
-
-// ----------------------
 // Animation
 // ----------------------
 
 const int SLEEP_MILLISECONDS = 25;  // time between prints
 const int   PRINT_INTERVAL = 100;  
-const int   TILE_PX        = 2;    // pixels per grid tile
+const int   TILE_PX        = 8;    // pixels per grid tile
 
 // ----------------------
 // Logging

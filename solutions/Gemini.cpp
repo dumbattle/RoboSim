@@ -72,7 +72,7 @@ int main() {
     GetPosition(curX, curY);
     g_grid[curX][curY] = G_EMPTY;
 
-    while (GetBattery() > 10) {
+    while (HasBattery()) {
         GetPosition(curX, curY);
         
         // 1. Identify Frontiers

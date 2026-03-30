@@ -273,7 +273,7 @@ int main() {
     g_visited[rx][ry] = true;
 
 
-    while (true) {
+    while (HasBattery()) {
         // Try greedy lookahead before expensive replanning
         if (GreedyStep()) continue;
 

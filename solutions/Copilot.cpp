@@ -135,7 +135,7 @@ void Explore() {
     GetPosition(x, y);
     visited.insert({x, y});
 
-    while (GetBattery() > 100) {
+    while (HasBattery()) {
 
         // 1) Try right, forward, left
         Direction d = GetDirection();

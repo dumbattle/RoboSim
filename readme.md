@@ -63,7 +63,7 @@ TurnLeft();        // rotate 90° counter-clockwise
 TurnRight();       // rotate 90° clockwise
 ```
 
-**Sensors** *(cost battery, may have error if SENSOR_ERROR_PROB > 0)*
+**Sensors** *(cost battery)*
 ```cpp
 bool IsWallAhead();    // true if wall is directly ahead
 ```
@@ -96,7 +96,7 @@ Direction::WEST    // x - 1
 
 ## Tuning the Simulation
 
-Edit `include/robot_params.h` to change map size, battery budget, obstacle density, sensor error, and animation speed.
+Edit `include/robot_params.h` to change map size, battery budget, obstacle density, and animation speed.
 
 ```cpp
 // Default Values
@@ -107,7 +107,6 @@ const int BATTERY_MOVE        = 5;
 const int BATTERY_TURN        = 3;
 const int BATTERY_QUERY_MIN   = 1;
 const int BATTERY_QUERY_MAX   = 3;
-const double SENSOR_ERROR_PROB = 0.0;   // 0.0–1.0
 const int WALL_LAYERS[]       = {40, 30, 30}; // target % of map per layer
 const int CLIFF_PROBABILITY   = 30;
 const int OBS_X_PROBABILITY   = 30;

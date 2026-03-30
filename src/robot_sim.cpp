@@ -12,21 +12,20 @@ using namespace std;
 // ----------------------
 // Internal helpers
 // ----------------------
-static bool sensorError() {
-    return (static_cast<double>(rand()) / RAND_MAX) < SENSOR_ERROR_PROB;
-}
 
-[[noreturn]] static void crash(const string& msg) {
+static void crash(const string& msg) {
     cout << "\n*** EVENT: " << msg << " ***\n";
     robot.battery = 0;
-    PrintResults();
-    closeDisplay();
-    exit(0);
 }
 
-static void drainBattery(int cost, const char* depletedMsg) {
-    if (robot.battery < cost) crash(depletedMsg);
+// Returns false and drains battery to 0 if insufficient; returns true and deducts cost otherwise.
+static bool drainBattery(int cost) {
+    if (robot.battery <= 0 || robot.battery < cost) {
+        robot.battery = 0;
+        return false;
+    }
     robot.battery -= cost;
+    return true;
 }
 
 // ----------------------
@@ -106,16 +105,20 @@ void Reset(long randomSeed) {
 void MoveForward() {
     static int score = 0;
     numMoves++;
-    drainBattery(BATTERY_MOVE, "Battery depleted!");
+    if (!drainBattery(BATTERY_MOVE)) return;
     int dx, dy;
     ToVector(robot.dir, dx, dy);
     int nx = robot.x + dx;
     int ny = robot.y + dy;
-    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT)
+    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) {
         crash("Robot fell off the map!");
+        return;
+    }
 
     switch (world[ny][nx]) {
-        case WALL:  crash("Robot ran into a wall!");
+        case WALL:
+            crash("Robot ran into a wall!");
+            return;
         default:
             robot.x = nx;
             robot.y = ny;
@@ -126,7 +129,7 @@ void MoveForward() {
                     cout << "SCORED " << score << " at " << MAX_BATTERY - robot.battery << " energy used." << endl;
                 }
             }
-            
+
             _visited[robot.y][robot.x] = true;
             _seen[robot.y][robot.x] = true;
             break;
@@ -137,14 +140,14 @@ void MoveForward() {
 
 void TurnLeft() {
     numTurns++;
-    drainBattery(BATTERY_TURN, "Battery depleted!");
+    if (!drainBattery(BATTERY_TURN)) return;
     robot.dir = Left(robot.dir);
     printMap();
 }
 
 void TurnRight() {
     numTurns++;
-    drainBattery(BATTERY_TURN, "Battery depleted!");
+    if (!drainBattery(BATTERY_TURN)) return;
     robot.dir = Right(robot.dir);
     printMap();
 }
@@ -152,7 +155,7 @@ void TurnRight() {
 bool IsWallAhead() {
     numScans++;
     int cost = BATTERY_QUERY_MIN + rand() % (BATTERY_QUERY_MAX - BATTERY_QUERY_MIN + 1);
-    drainBattery(cost, "Battery depleted!");
+    if (!drainBattery(cost)) return false;
     
     int dx, dy;
     ToVector(robot.dir, dx, dy);
@@ -160,7 +163,6 @@ bool IsWallAhead() {
     int ny = robot.y + dy;
 
     bool result = !inRange(nx, ny) || world[ny][nx] == WALL;
-    if (sensorError()) result = !result;
     if (inRange(nx, ny)) {
         _seen[ny][nx] = true;
     }
@@ -177,6 +179,9 @@ Direction GetDirection() {
 
 int GetBattery() {
     return robot.battery;
+}
+bool HasBattery() {
+    return robot.battery > 0;
 }
 int GetScore() {
     int n = 0;
