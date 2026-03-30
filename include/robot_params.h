@@ -6,8 +6,8 @@
 // ----------------------
 // Map Parameters
 // ----------------------
-const int MAP_WIDTH = 150;
-const int MAP_HEIGHT = 100;
+const int MAP_WIDTH = 15;
+const int MAP_HEIGHT = 10;
 
 
 
@@ -40,13 +40,13 @@ struct WallData {
 const WallData WALL_DATA[] = {
     {
         50,                                 // Damage
-        { {25, 55} },   // errorRanges
+        { {0, 10} },   // errorRanges
         25,                                 // transitionTime
         { 15, 25 }                          // restPeriod
     },
     {
         500,                                // Damage
-        { {15, 35} },   // errorRanges
+        { {1, 7} },   // errorRanges
         20,                                 // transitionTime
         { 25, 40 }                          // restPeriod
     }
@@ -77,9 +77,9 @@ const int BATTERY_QUERY_MAX = 3;      // max cost per sensor query
 // Animation
 // ----------------------
 
-const int SLEEP_MILLISECONDS = 25;  // time between prints
-const int   PRINT_INTERVAL = 100;  
-const int   TILE_PX        = 8;    // pixels per grid tile
+const int SLEEP_MILLISECONDS = 250;  // time between prints
+const int   PRINT_INTERVAL = 1;  
+const int   TILE_PX        = 64;    // pixels per grid tile
 
 // ----------------------
 // Logging

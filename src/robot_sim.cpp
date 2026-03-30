@@ -197,7 +197,7 @@ void MoveForward() {
     for (int i = 0; i < TILE_TYPE_COUNT; i++) {
         _confidence[ny][nx][i] = 0; 
     }
-    _confidence[ny][nx][wallType + 1] = 1;
+    _confidence[ny][nx][wallType + 1] = 1.1; // 1.1 for more stable float comparisons
 
 
     if (world[ny][nx] >= 0) {
@@ -409,6 +409,13 @@ int GetScore() {
 bool TileVisited(int x, int y) {
     return _visited[y][x];
 }
+
+int GetObstacleDamage(int obstacleIndex) {
+    return WALL_DATA[obstacleIndex].damage;
+}
+
+int GetMapWidth()  { return MAP_WIDTH;  }
+int GetMapHeight() { return MAP_HEIGHT; }
 
 
 void PrintResults() {

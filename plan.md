@@ -43,12 +43,15 @@
 
 - [ ] `StateMachine` class
 - [ ] `sm.Add(name, function)` — register a mode
-- [ ] `sm.SetMode(name)` — activate a mode
+- [ ] `sm.OnEnter(name, function)` — register an optional listener 
+- [ ] `sm.OnExit(name, function)`  — register an optional listener
+- [ ] `sm.SetMode(name)` — activate a mode calls onenter/onexit if registered
 - [ ] `sm.Tick()` — execute current mode
 
 ## Display
 
 - [ ] Distinct colors for wall vs cliff tiles
+- [ ] Unique erorr messages for cliff types
 - [ ] Sensor error rate HUD display
 - [ ] Tile confidence visualization (optional)
 - [ ] Current mode label in HUD (optional)

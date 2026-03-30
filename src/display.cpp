@@ -136,14 +136,16 @@ static sf::Color tileColour(int x, int y) {
     auto c = _confidence[y][x];
 
     float max_c = 0;
-
     for (int i = 0; i < TILE_TYPE_COUNT; i++) {
         max_c = max_c > c[i] ? max_c : c[i];
     }
-
+    
+    if (max_c > 1) {max_c = 1;}
     max_c = (max_c - (1.0 / TILE_TYPE_COUNT)) / (1 - 1.0 / TILE_TYPE_COUNT);
-
-    const int MIN = 48;
+    
+    max_c = _confidence[y][x][world[y][x] + 1];
+    if (max_c > 1) {max_c = 1;}
+    const int MIN = 0;
     const int MAX = 255;
 
     int t = (int)(max_c * (MAX - MIN) + MIN);

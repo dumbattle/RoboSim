@@ -1,10 +1,9 @@
 # Robot Exploration Simulator
 
-A grid-based robot exploration simulator built in C++ with real-time SFML visualization.
-The robot navigates a procedurally generated map of walls, cliffs, and traps on a limited
-battery budget. 
+A grid-based robot exploration simulator built in C++ with real-time SFML visualizatio
+The robot navigates a procedurally generated map of walls and cliffs on a limited battery budget.
 
-Score = number of unique tiles visited before the battery dies.
+**Score** = number of unique tiles visited before the battery dies.
 
 Originally built as a teaching tool to compare exploration algorithms,
 as well as to benchmark LLM code generation abilities.
@@ -13,126 +12,169 @@ as well as to benchmark LLM code generation abilities.
 
 ## How It Works
 
-The world is a 2D grid randomly populated with walls. The robot
-starts at a random tile and can only perceive exactly 1 tile in front of it. 
-There is no accessible global map, the robot must build one itself.
+The world is a 2D grid procedurally populated with multiple obstacle types that cluster
+by type. The robot starts at a random tile and can only perceive the tile directly in front
+of it - there is no global map, so it must build one from sensor data.
 
 **Battery costs**
-All actions and sensor queries cost energy. 
+Every action and sensor query drains battery. The robot stops when battery hits 0.
+Moving into a wall does not advance the robot, but still costs movement battery plus
+a damage penalty specific to that obstacle type.
 
-The robot crashes (and the run ends) if it moves into a wall or runs
-out of battery.
+**Obstacle types**
+Each obstacle type has a configurable damage value (battery drained on collision).
+ObObstacle types are indexed `0..WALL_TYPE_COUNT-1`. Use `GetObstacleDamage(index)` to
+query damage at runtime.
+
+**Sensor error model**
+Sensors are imperfect. Each obstacle type has independent false-positive and
+false-negative rates (0–50%) that drift slowly over time via a random-walk transition
+system. A rate of 50% is pure noise. 0% is completely accurate. 
+
+Internally each tile stores a Bayesian confidence distribution over all tile types.
+Every `ScanAhead()` call updates the distribution for the tile ahead using the current
+error rates. Moving onto or into a tile sets its confidence to 100% (ground truth).
+
+Use `GetErrorRates()` and `GetErrorDeltas()` to observe how reliable the sensor currently
+is and whether it is getting better or worse. Use `GetExpectedInfoGain()` to decide
+whether a scan is actually worth the battery cost before committing.
+
+These are provided to simplify implementations.
 
 ---
 
 ## Writing Your Own Algorithm
 
-Open a new .cpp and write your exploration logic using the robot API:
-
-```cpp
-#include "robot_api.h"
-
-int main() {
-    Reset();
-
-    while (true) {
-        if (IsWallAhead() || IsCliffAhead()) {
-            TurnLeft();
-        } 
-        else {
-            MoveForward();
-        }
-    }
-
-    PrintResults();
-}
-```
-
 ### Full API Reference
 
 **Setup**
 ```cpp
-Reset();           // call at the start - generates the world and places the robot
-PrintResults();    // call at the end - prints score and shows final frame.
+Reset();           // generates the world and places the robot - call once at the start
+PrintResults();    // prints score and shows final state - call at the end
 ```
 
 **Movement** *(cost battery)*
 ```cpp
-MoveForward();     // move one tile forward - crashes on walls
-TurnLeft();        // rotate 90° counter-clockwise
-TurnRight();       // rotate 90° clockwise
+MoveForward();              // move one tile forward
+                            //   open tile -> robot advances, tile confidence set to 100%
+                            //   obstacle  -> robot stays, battery drained by move + damage
+TurnLeft();                 // rotate 90° counter-clockwise
+TurnRight();                // rotate 90° clockwise
+TurnToDirection(Direction); // rotate to face Direction using minimum turns (0, 1, or 2)
 ```
 
-**Sensors** *(cost battery)*
+**Sensor scanning** *(costs battery)*
 ```cpp
-bool IsWallAhead();    // true if wall is directly ahead
+// Scans the tile ahead for obstacle type obstacleIndex. Updates tile confidence.
+// FREE if tile is already 100% certain or error rate is 50%.
+void ScanAhead(int obstacleIndex);
 ```
 
-**Info** *(free - no battery cost)*
+**Sensor error rates** *(free)*
 ```cpp
-void GetPosition(int& x, int& y);    // current grid position
-Direction GetDirection();            // current facing direction
-int GetBattery();                    // remaining battery
-int GetScore();                      // unique tiles visited so far
+// Current false-positive and false-negative rates for an obstacle type (0–50%).
+void GetErrorRates(int obstacleIndex, int& falsePositive, int& falseNegative);
+
+// Rate of change of the error rates (% per tick). Positive = getting worse.
+void GetErrorDeltas(int obstacleIndex, float& fpDelta, float& fnDelta);
 ```
 
-**Direction helpers** *(free - to maintain consistency with internal implementation)*
+**Tile confidence** *(free)*
 ```cpp
-Direction Left(Direction d);                        // direction 90° left of d
-Direction Right(Direction d);                       // direction 90° right of d
-void ToVector(Direction d, int& dx, int& dy);       // unit vector for d
-void Translate(int& x, int& y, Direction d);        // shift (x,y) one step in d
+// Single confidence value: P(tile (x,y) is obstacleIndex). obstacleIndex -1 = empty.
+float GetTileConfidence(int x, int y, int obstacleIndex);
+
+// Full distribution: results[0]=P(empty), results[i]=P(obstacle type i-1).
+void GetTileConfidence(int x, int y, float (&results)[TILE_TYPE_COUNT]);
+
+// Expected information gained by scanning tile (x,y) for obstacleIndex.
+// Returns probabilities and entropy deltas for both scan outcomes.
+InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex);
+```
+
+**Robot state queries** *(free)*
+```cpp
+void GetPosition(int& x, int& y);  // current grid position
+Direction GetDirection();           // current facing direction
+int  GetBattery();                  // remaining battery
+bool HasBattery();                  // true if battery > 0
+int  GetScore();                    // unique tiles visited so far
+bool InRange(int x, int y);         // true if (x,y) is within map bounds
+bool TileVisited(int x, int y);     // true if robot has stepped on (x,y)
+int  GetObstacleDamage(int index);  // battery damage for obstacle type index
+int  GetMapWidth();                 // map width in tiles  (== MAP_WIDTH)
+int  GetMapHeight();                // map height in tiles (== MAP_HEIGHT)
+```
+
+**Direction helpers** *(free)*
+```cpp
+Direction Left(Direction d);                     // 90° left of d
+Direction Right(Direction d);                    // 90° right of d
+void ToVector(Direction d, int& dx, int& dy);    // unit vector for d
+void Translate(int& x, int& y, Direction d);     // shift (x,y) one step in d
+bool TryToDirection(int dx, int dy, Direction&); // vector -> direction (cardinal only)
+std::string ToString(Direction d);               // "North" / "East" / "South" / "West"
 ```
 
 **Direction enum**
 ```cpp
-Direction::NORTH   // y + 1
-Direction::EAST    // x + 1
-Direction::SOUTH   // y - 1
-Direction::WEST    // x - 1
+NORTH   // +Y
+EAST    // +X
+SOUTH   // -Y
+WEST    // -X
 ```
 
 ---
 
 ## Tuning the Simulation
 
-Edit `include/robot_params.h` to change map size, battery budget, obstacle density, and animation speed.
+Edit `include/robot_params.h` to adjust map size, battery budget, obstacle behaviour,
+and animation speed.
 
 ```cpp
-// Default Values
-const int MAP_WIDTH           = 150;
-const int MAP_HEIGHT          = 100;
-const int MAX_BATTERY         = 50'000;
-const int BATTERY_MOVE        = 5;
-const int BATTERY_TURN        = 3;
-const int BATTERY_QUERY_MIN   = 1;
-const int BATTERY_QUERY_MAX   = 3;
-const int WALL_LAYERS[]       = {40, 30, 30}; // target % of map per layer
-const int CLIFF_PROBABILITY   = 30;
-const int OBS_X_PROBABILITY   = 30;
-const unsigned int SEED       = 3141;
+// Map
+const int MAP_WIDTH   = 150;
+const int MAP_HEIGHT  = 100;
+
+// Battery
+const int MAX_BATTERY       = 50'000;
+const int BATTERY_MOVE      = 5;
+const int BATTERY_TURN      = 3;
+const int BATTERY_QUERY_MIN = 1;
+const int BATTERY_QUERY_MAX = 3;
+
+// Seed
+const unsigned int SEED = 31415;
+
+// Obstacle types - add/remove entries to change the number of types
+const WallData WALL_DATA[] = {
+    {
+        50,            // damage on collision
+        { {25, 55} },  // error rate ranges (random-walk target ranges, %)
+        25,            // transition time (ticks to interpolate to new rate)
+        { 15, 25 }     // rest period range (ticks between transitions)
+    },
+    {
+        500,
+        { {15, 35} },
+        20,
+        { 25, 40 }
+    }
+};
+
+// Obstacle layer layout - one entry per layer, value = WALL_DATA index
+const int WALL_LAYER_TYPES[] = { 0, 0, 1 };
+const int WALL_LAYERS[]      = { 40, 30, 30 };  // % of map per layer
+
+// Animation
+const int SLEEP_MILLISECONDS = 25;
+const int PRINT_INTERVAL     = 100;
+const int TILE_PX            = 8;
 ```
 
 ---
 
 ## AI Benchmark Results
-
-Each LLM was given the robot API and asked to write an exploration algorithm. Solutions were then debugged, optimized, and benchmarked across multiple seeds alongside a human-written solution.
-
-**300×200 map · 200,000 battery · 5 seeds average**
-
-| Rank | Solution | Avg Score | Strategy |
-|------|----------|-----------|----------|
-| 1 | Human | 20,204 | Frontier group flood-fill with size/distance heuristic |
-| 2 | Claude | 19,905 | Dijkstra pathfinding weighted by turn + move cost |
-| 3 | DeepSeek | 19,500 | Information-gain frontier scoring with greedy forward |
-| 4 | Gemini | 18,021 | Nearest-frontier BFS by Manhattan distance |
-| 5 | Copilot | 17,370 | Right-hand wall follow with BFS fallback |
-| 6 | Grok | 15,352 | Stack-based DFS with wall-following priority |
-| 7 | ChatGPT | 15,230 | Stack-based DFS with forward priority |
-
-See [`BENCHMARK.md`](BENCHMARK.md) for full analysis: per-seed results, efficiency ratios, cost-scenario experiments, and algorithm breakdowns.
-Note: These results do not reflect the LLM's intelligence. The prompts were open ended, and many purposely offered "simple" solutions.
 
 ---
 
@@ -158,8 +200,7 @@ The path must be exactly `C:\SFML-2.6.2\` - the build task is configured to look
 **2. Copy the SFML DLLs**
 
 Inside `C:\SFML-2.6.2\bin\` you'll find several `.dll` files. Copy the following
- into the `build\` folder next to the `.exe` after your
-first build. The ones you need are:
+into the `build\` folder next to the `.exe` after your first build:
 
 ```
 sfml-graphics-2.dll
@@ -169,21 +210,16 @@ sfml-system-2.dll
 
 **3. Create the build folder**
 
-Create an empty `build\` folder inside the project root. The compiler may not create it
-automatically.
-
 ```
 mkdir build
 ```
 
 **4. Build**
 
-Open your file, or any of the benchmark solutions, in VS Code and press `Ctrl+Shift+B`. The output exe will be at
-`build\main.exe`.
+Open your solution file in VS Code and press `Ctrl+Shift+B`. Output will be at `build\<name>.exe`.
 
 > **Important:** Always build from a **Developer Command Prompt** session, or launch
-> VS Code from one, so that `cl.exe` is on the PATH. You can find it in the Start menu
-> under *Visual Studio -> Developer Command Prompt*.
+> VS Code from one, so that `cl.exe` is on the PATH.
 
 **5. Run**
 
@@ -196,16 +232,24 @@ build\main.exe
 ## Project Structure
 
 ```
-├── README.md
+├── readme.md
 ├── .gitignore
 ├── .vscode/
 │   └── tasks.json
 ├── include/
-│   ├── robot_api.h         <- API declarations
+│   ├── robot_api.h         <- Public API declarations
+│   ├── debug_api.h         <- Debug/test API (SetTile, SetErrors, etc.)
 │   ├── robot_params.h      <- Simulation parameters (edit to tune)
 │   └── ...
 ├── src/
 │   ├── robot_sim.cpp       <- API implementation
+│   ├── debug_api.cpp       <- Debug API implementation
+│   ├── robot.cpp           <- Robot state
+│   ├── world.cpp           <- Map generation
+│   └── display.cpp         <- SFML rendering
+└── solutions/              <- Benchmark solutions and test scripts
+```
+tion
 │   ├── robot.cpp           <- Robot state
 │   ├── world.cpp           <- Map generation
 │   └── display.cpp         <- SFML rendering

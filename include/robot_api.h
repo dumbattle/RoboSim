@@ -6,92 +6,186 @@
 
 using namespace std;
 
-// ----------------------
-// Data Helpers
-// ----------------------
+// ============================================================
+// Robot Exploration Simulator - Public API
+// ============================================================
+//
+// Goal: visit as many unique tiles as possible before battery runs out.
+// Score = number of distinct tiles stepped on.
+//
+// Key constants (see robot_params.h):
+//   MAP_WIDTH, MAP_HEIGHT     - map dimensions
+//   MAX_BATTERY               - starting battery
+//   BATTERY_MOVE              - cost per MoveForward()
+//   BATTERY_TURN              - cost per TurnLeft() / TurnRight()
+//   BATTERY_QUERY_MIN/MAX     - cost per ScanAhead()
+//   WALL_TYPE_COUNT           - number of distinct obstacle types
+//   TILE_TYPE_COUNT           - WALL_TYPE_COUNT + 1  (index 0 = empty)
+//   SEED                      - default map seed
+//
+// Tips:
+//   - Obstacles cluster by type - nearby tiles are likely the same type.
+//   - Sensor error rates drift over time; use GetErrorDeltas() to track trends.
+//   - Moving into a wall drains damage battery but does not advance the robot.
+//   - ScanAhead() is free if the tile is already certain (confidence == 1) or sensor is completely unreliable.
 
+
+// ============================================================
+// Direction
+// ============================================================
+
+// Cardinal directions. NORTH = +Y, EAST = +X, SOUTH = -Y, WEST = -X.
 enum Direction { NORTH, EAST, SOUTH, WEST };
 
+// Returns the direction 90° to the left / right of d.
 Direction Left(Direction d);
 Direction Right(Direction d);
 
+// Converts a unit axis-aligned offset (dx, dy) to a Direction.
+// Returns false if the vector is not a cardinal direction (e.g. diagonal or zero).
 bool TryToDirection(int x, int y, Direction& outDirection);
+
+// Fills (resultX, resultY) with the unit step vector for direction d.
+// NORTH -> (0,+1)  EAST -> (+1,0)  SOUTH -> (0,-1)  WEST -> (-1,0)
 void ToVector(Direction d, int& resultX, int& resultY);
+
+// Advances (x, y) one step in direction d (equivalent to x+=dx, y+=dy).
 void Translate(int& x, int& y, Direction d);
 
+// Returns a human-readable name for d ("North", "East", "South", "West").
 std::string ToString(Direction d);
 
-// ----------------------
-// Sensors
-// ----------------------
 
-// obstacle index in range [0, WALL_TYPE_COUNT)
-// error rates in range [0-50]%
+// ============================================================
+// Sensor - error model
+// ============================================================
+//
+// Each obstacle type has independent false-positive and false-negative rates
+// that drift over time (range 0–50%). Rates are integers representing percent.
+// A rate of 50% is pure noise - ScanAhead() skips automatically.
+
+// Fills (falsePositive, falseNegative) with the current error rates (0–50) for
+// the given obstacle type. Free - no battery cost.
 void GetErrorRates(int obstacleIndex, int& falsePositive, int& falseNegative);
 
+// Fills (falsePositiveRate, falseNegativeRate) with the current rate-of-change
+// of the error rates (units: % per tick). Positive = error is worsening.
+// Useful for deciding whether to scan now vs. wait. Free - no battery cost.
 void GetErrorDeltas(int obstacleIndex, float& falsePositiveRate, float& falseNegativeRate);
 
-// obstacleIndex in range [0, WALL_TYPE_COUNT)
-// Skips (free) if tile is already certain, or if error rate is 50% (pure noise).
+
+// ============================================================
+// Sensor - scanning
+// ============================================================
+
+// Scans the tile directly ahead for the presence of obstacle type obstacleIndex.
+// Performs a Bayesian update on the tile's confidence distribution.
+//
+// Costs BATTERY_QUERY_MIN–BATTERY_QUERY_MAX battery (random each call).
+// FREE (no battery, no state change) if:
+//   - the tile is already certain (any type has confidence == 1), or
+//   - the current error rate is 50% (scan would carry no information).
+//
+// obstacleIndex: [0, WALL_TYPE_COUNT)
 void ScanAhead(int obstacleIndex);
 
-// ----------------------
-// Tile Queries
-// ----------------------
 
+// ============================================================
+// Tile confidence
+// ============================================================
+//
+// Each tile stores a probability distribution over TILE_TYPE_COUNT outcomes:
+//   index 0          -> empty
+//   index 1..N       -> obstacle type (index - 1)
+// Initially uniform. Updated by ScanAhead() and revealed on move.
+
+// Returns the confidence (0–1) that tile (x, y) is obstacle type obstacleIndex.
+// Pass obstacleIndex = -1 … N-1; or use the array overload for all at once.
 float GetTileConfidence(int x, int y, int obstacleIndex);
 
-// index 0 => empty tile
-// index N => obstacle type N-1
+// Fills results[0..TILE_TYPE_COUNT-1] with the full confidence distribution for
+// tile (x, y). results[0] = P(empty), results[i] = P(obstacle type i-1).
 void GetTileConfidence(int x, int y, float (&results)[TILE_TYPE_COUNT]);
 
-// All values normalized to [-1, 1] (entropy deltas) or [0, 1] (probabilities, expected)
+// Describes the information value of one ScanAhead() call on a specific tile.
+// All entropy deltas normalized to [-1, 1]; probabilities and expected to [0, 1].
 struct InfoGain {
-    float expected;          // E[entropy reduction] weighted by outcome probabilities - [0, 1]
-
-    float probPositive;      // P(obstacle detected)     - [0, 1]
-    float deltaIfPositive;   // entropy reduction if scan fires   - [-1, 1]
-
-    float probNegative;      // P(obstacle not detected) - [0, 1]
-    float deltaIfNegative;   // entropy reduction if scan silent  - [-1, 1]
+    float expected;          // Expected entropy reduction (weighted average)     [0, 1]
+    float probPositive;      // P(scan fires - obstacle detected)                 [0, 1]
+    float deltaIfPositive;   // Entropy reduction if scan fires                   [-1, 1]
+    float probNegative;      // P(scan silent - no obstacle detected)             [0, 1]
+    float deltaIfNegative;   // Entropy reduction if scan is silent               [-1, 1]
 };
 
+// Returns the expected information gain of scanning tile (x, y) for obstacle type
+// obstacleIndex, given the current confidence and live sensor error rates.
 // Pure query - no battery cost, no state changes.
 InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex);
 
 
-// ----------------------
-// API
-// ----------------------
+// ============================================================
+// Actions  (all cost battery)
+// ============================================================
 
-
-// These all cost energy
+// Moves the robot one tile in its current direction. Costs BATTERY_MOVE.
+// If the destination is a wall, the wall's damage is also subtracted from battery
+// and the robot does NOT advance. Reveals the destination tile's true type.
+// Crashes (battery -> 0) if the robot would move off the map.
 void MoveForward();
-void TurnLeft();    // only turns, does not move forward after
+
+// Rotates the robot 90° left / right in place. Costs BATTERY_TURN each.
+// Does not move the robot forward.
+void TurnLeft();
 void TurnRight();
-void TurnToDirection(Direction d); // will perform minimal turns
 
-// ----------------------
-// Robot Queries
-// ----------------------
-// Do not cost energy
+// Rotates the robot to face direction d using the minimum number of turns.
+// Costs BATTERY_TURN per turn (0, 1, or 2 turns total).
+void TurnToDirection(Direction d);
 
+
+// ============================================================
+// Robot state queries  (all free - no battery cost)
+// ============================================================
+
+// Fills (x, y) with the robot's current grid position.
 void GetPosition(int& x, int& y);
+
+// Returns the robot's remaining battery.
 int GetBattery();
+
+// Returns true if battery > 0.
 bool HasBattery();
+
+// Returns the direction the robot is currently facing.
 Direction GetDirection();
+
+// Returns the number of unique tiles visited so far (the score).
 int GetScore();
+
+// Returns true if (x, y) is within map bounds [0, MAP_WIDTH) × [0, MAP_HEIGHT).
 bool InRange(int x, int y);
+
+// Returns true if the robot has previously stepped on tile (x, y).
 bool TileVisited(int x, int y);
 
-// ----------------------
+// Returns the battery damage dealt when moving into an obstacle of the given type.
+// obstacleIndex: [0, WALL_TYPE_COUNT)
+int GetObstacleDamage(int obstacleIndex);
+
+// Returns the map dimensions in tiles.
+int GetMapWidth();
+int GetMapHeight();
+
+
+// ============================================================
 // Boilerplate
-// ----------------------
+// ============================================================
 
-
-// Call this at the start of your script
+// Initialises the world and robot. Must be called once before anything else.
+// Uses SEED from robot_params.h if seed is omitted or negative.
 void Reset(long seed = -1);
-// Call this at end of script
+
+// Prints final stats and closes the display window. Call at the end of main().
 void PrintResults();
 
 #endif
