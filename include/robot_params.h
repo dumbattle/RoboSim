@@ -5,8 +5,8 @@
 // ----------------------
 // Map Parameters
 // ----------------------
-const int MAP_WIDTH = 600;
-const int MAP_HEIGHT = 400;
+const int MAP_WIDTH = 300;
+const int MAP_HEIGHT = 200;
 
 
 // GOOD FOR LARGE MAPS
@@ -15,7 +15,7 @@ const int WALL_LAYERS[]  = {40, 30, 30};   // % chance
 // ----------------------
 // Battery Costs
 // ----------------------
-const int MAX_BATTERY = 1'000'000;        
+const int MAX_BATTERY = 200'000;        
 
 const int BATTERY_MOVE = 5;           // cost per MoveForward()
 const int BATTERY_TURN = 3;           // cost per TurnLeft/TurnRight()
@@ -39,7 +39,7 @@ const int   TILE_PX        = 2;    // pixels per grid tile
 // Logging
 // ----------------------
 
-const int SCORE_REPORT_INTERVAL = -1000;  // reports energy usage after collecting every multiple of this. 
+const int SCORE_REPORT_INTERVAL = -1;     // reports energy usage after collecting every multiple of this.
                                           // -1 to disable
 
 // ----------------------
