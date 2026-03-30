@@ -14,7 +14,7 @@
 - [X] Replace `IsWallAhead` with `ScanAhead`
 - [X] update confidence values after each scan
 - [X] If confidence is 100%, abort scan
-- [ ] Expose Confidence Queries
+- [X] Expose Confidence Queries
 - [X] Walking onto open tile or into wall sets confidence to 100%
 
 ## Dynamic error rates
@@ -30,7 +30,7 @@
 
 - [X] `GetErrorRates(ObstacleType) → float falsePos, float falseNeg`
 - [X] `GetErrorDeltas(ObstacleType) → float fpDelta, float fnDelta`
-- [ ] `GetTileConfidence(x, y) → int[]` (indexed by obstacle type)
+- [X] `GetTileConfidence(x, y) → int[]` (indexed by obstacle type)
 - [ ] `GetExpectedInfoGain(x, y, ObstacleType) → float`
 
 ## New API — helpers

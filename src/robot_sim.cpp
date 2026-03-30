@@ -283,6 +283,22 @@ void ScanAhead(int obstacleIndex) {
     printMap();
 }
 
+float GetTileConfidence(int x, int y, int obstacleIndex) {
+    return _confidence[y][x][obstacleIndex];
+}
+
+// index 0 => empty tile
+// index N => wall type N-1
+void GetTileConfidence(int x, int y, float (&results)[TILE_TYPE_COUNT]) {
+    for (int i = 0; i < TILE_TYPE_COUNT; i++) {
+        results[i] = _confidence[y][x][i];
+    }
+}
+
+
+
+
+
 void GetPosition(int& x, int& y) {
     x = robot.x;
     y = robot.y;
