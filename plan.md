@@ -11,9 +11,9 @@
 
 ## Confidence
 - [X] Refactor `_seen` into confidence values for each tile type
-- [ ] Replace `IsWallAhead` with `ScanAhead`
-- [ ] update confidence values after each scan
-- [ ] If confidence is 100%, abort scan
+- [X] Replace `IsWallAhead` with `ScanAhead`
+- [X] update confidence values after each scan
+- [X] If confidence is 100%, abort scan
 - [ ] Expose Confidence Queries
 - [X] Walking onto open tile or into wall sets confidence to 100%
 

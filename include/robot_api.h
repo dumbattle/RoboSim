@@ -40,9 +40,10 @@ void MoveForward();
 void TurnLeft();    // only turns, does not move forawrd after
 void TurnRight();
 
-// Sensors 
-// These cost energy, make sure they are not wasted!
-bool IsWallAhead(int wallType);
+
+// obstacleIndex in range [0, WALL_TYPE_COUNT)
+// Skips (free) if tile is already certain, or if error rate is 50% (pure noise).
+void ScanAhead(int obstacleIndex);
 
 // Info
 // Do not cost energy

@@ -225,21 +225,62 @@ void TurnRight() {
     printMap();
 }
 
-bool IsWallAhead(int wallType) {
-    numScans++;
-    int cost = BATTERY_QUERY_MIN + rand() % (BATTERY_QUERY_MAX - BATTERY_QUERY_MIN + 1);
-    if (!drainBattery(cost)) return false;
-    
+void ScanAhead(int obstacleIndex) {
+    Tick();
+
     int dx, dy;
     ToVector(robot.dir, dx, dy);
     int nx = robot.x + dx;
     int ny = robot.y + dy;
 
-    bool result = world[ny][nx] == wallType;
-    if (inRange(nx, ny)) {
-        // _seen[ny][nx] = true;
+    if (!inRange(nx, ny)) return;
+
+    auto& conf = _confidence[ny][nx];
+
+    // Skip: tile already certain (confidence == 1 for any type)
+    for (int i = 0; i < TILE_TYPE_COUNT; i++) {
+        if (conf[i] >= 1.0f) return;
     }
-    return result;
+
+    // Cost battery
+    numScans++;
+    int cost = BATTERY_QUERY_MIN + rand() % (BATTERY_QUERY_MAX - BATTERY_QUERY_MIN + 1);
+    if (!drainBattery(cost)) return;
+
+    // Get error rates
+    int fp, fn;
+    GetErrorRates(obstacleIndex, fp, fn);
+
+    // Skip: pure noise — scan carries no information
+    if (fp >= 50 || fn >= 50) return;
+
+    float fpRate = fp / 100.0f;
+    float fnRate = fn / 100.0f;
+
+    // Apply error to ground truth to get sensor result
+    bool isObstacle = (world[ny][nx] == obstacleIndex);
+    bool result = isObstacle
+        ? (rand() % 100) >= fn   // true unless false negative fires
+        : (rand() % 100) < fp;   // false unless false positive fires
+
+    // Bayesian update: multiply each prior by likelihood of this result
+    float total = 0.0f;
+    for (int i = 0; i < TILE_TYPE_COUNT; i++) {
+        bool isTarget = (i == obstacleIndex + 1);
+        float likelihood = result
+            ? (isTarget ? (1.0f - fnRate) : fpRate)          // sensor said YES
+            : (isTarget ? fnRate           : (1.0f - fpRate));// sensor said NO
+        conf[i] *= likelihood;
+        total += conf[i];
+    }
+
+    // Normalize
+    if (total > 0.0f) {
+        for (int i = 0; i < TILE_TYPE_COUNT; i++)
+            conf[i] /= total;
+    }
+
+    printMap();
 }
 
 void GetPosition(int& x, int& y) {
