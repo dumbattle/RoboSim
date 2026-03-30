@@ -2,15 +2,16 @@
 #define ROBOT_PARAMS_H
 
 
+
 // ----------------------
 // Map Parameters
 // ----------------------
 const int MAP_WIDTH = 150;
 const int MAP_HEIGHT = 100;
 
-
-// GOOD FOR LARGE MAPS
-const int WALL_LAYERS[]  = {40, 30, 30};   // % chance
+const int WALL_LAYER_TYPES[]  = { 0, 0, 1};   // % chance
+const int WALL_LAYERS[]       = { 40, 30, 30};   // % chance
+const int WALL_TYPE_DAMAGE[] = { 50, 500 };
 
 // ----------------------
 // Battery Costs

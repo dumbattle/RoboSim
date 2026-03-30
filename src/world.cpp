@@ -7,7 +7,7 @@
 
 using namespace std;
 
-vector<vector<Tile>> world;
+vector<vector<int>> world;
 vector<vector<int>> wallLayers;
 mt19937 rng;
 
@@ -64,7 +64,7 @@ static void addNeighbors(Group& g, int x, int y) {
 // ----------------------
 // Tile-type placement
 // ----------------------
-static void generateType(int layer, int expected) {
+static void generateType(int layer, int expected, int wallType) {
     vector<Group> groups;
 
     int seeds = static_cast<int>(sqrt(expected));
@@ -73,10 +73,10 @@ static void generateType(int layer, int expected) {
 
     for (int i = 0; i < seeds; i++) {
         int x = xdist(rng), y = ydist(rng);
-        if (world[y][x] != EMPTY) continue;
+        if (world[y][x] != -1) continue;
         if (adjacent8(x, y, layer)) continue;
         Group g;
-        world[y][x] = WALL;
+        world[y][x] = wallType;
         wallLayers[y][x] = layer;
         g.tiles.push_back({x, y});
         addNeighbors(g, x, y);
@@ -98,12 +98,12 @@ static void generateType(int layer, int expected) {
         int y = g.queue[qi].second;
         g.queue.erase(g.queue.begin() + qi);
 
-        if (!inRange(x, y) || world[y][x] != EMPTY || adjacent8(x, y, layer, &g)) {
+        if (!inRange(x, y) || world[y][x] != -1 || adjacent8(x, y, layer, &g)) {
             attempts++;
             continue;
         }
 
-        world[y][x] = WALL;
+        world[y][x] = wallType;
         wallLayers[y][x] = layer;
         g.tiles.push_back({x, y});
         addNeighbors(g, x, y);
@@ -116,12 +116,12 @@ static void generateType(int layer, int expected) {
 // ----------------------
 void generateWorld(unsigned int seed) {
     rng = mt19937(seed);
-    world.assign(MAP_HEIGHT, vector<Tile>(MAP_WIDTH, EMPTY));
+    world.assign(MAP_HEIGHT, vector<int>(MAP_WIDTH, -1));
     wallLayers.assign(MAP_HEIGHT, vector<int>(MAP_WIDTH, -1));
     int total = MAP_WIDTH * MAP_HEIGHT;
 
     for (int i = 0; i < size(WALL_LAYERS); i++) {
-        generateType(i,  total * WALL_LAYERS[i]  / 100);
+        generateType(i,  total * WALL_LAYERS[i]  / 100, WALL_LAYER_TYPES[i]);
     }
     
 }
@@ -135,7 +135,7 @@ pair<int,int> randomEmptyTile() {
 
     for (int y = 0; y < MAP_HEIGHT; y++)
     for (int x = 0; x < MAP_WIDTH;  x++) {
-        if (world[y][x] != EMPTY || visited[y][x]) continue;
+        if (world[y][x] != -1 || visited[y][x]) continue;
 
         queue<pair<int,int>> q;
         vector<pair<int,int>> region;
@@ -149,7 +149,7 @@ pair<int,int> randomEmptyTile() {
             vector<pair<int,int>> nbrs = neighbors4(cx, cy);
             for (size_t i = 0; i < nbrs.size(); i++) {
                 int nx = nbrs[i].first, ny = nbrs[i].second;
-                if (!visited[ny][nx] && world[ny][nx] == EMPTY) {
+                if (!visited[ny][nx] && world[ny][nx] == -1) {
                     visited[ny][nx] = true;
                     q.push({nx, ny});
                 }

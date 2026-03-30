@@ -7,9 +7,8 @@
 // ----------------------
 // Tile / Map Types
 // ----------------------
-enum Tile { EMPTY, WALL };
 
-extern std::vector<std::vector<Tile>> world;
+extern std::vector<std::vector<int>> world;
 extern std::mt19937 rng;
 
 bool inRange(int x, int y);

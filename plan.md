@@ -2,12 +2,12 @@
 
 ## Environment
 
-- [ ] Add `ObstacleType` enum (WALL, CLIFF)
-- [ ] Modify world generation to place walls and cliffs as separate types
-- [ ] Implement obstacle clustering by type (existing layer system supports this)
+- [X] Add `ObstacleType` enum (WALL, CLIFF)
+- [X] Modify world generation to place walls and cliffs as separate types
+- [X] Implement obstacle clustering by type (existing layer system supports this)
 - [ ] Wall collision drains energy instead of killing
 - [ ] Cliff collision kills instantly (or drains alot)
-- [ ] Configure energy drain amount for wall collision
+- [X] Configure energy drain amount for wall collision
 
 ## Dynamic error rates
 
