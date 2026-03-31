@@ -3,6 +3,7 @@
 #include <vector>
 
 
+const float CONFIDENCE_COMPLETION_THRESH = 0.999;
 // ----------------------
 // Map Parameters
 // ----------------------
@@ -12,7 +13,7 @@ const int MAP_HEIGHT = 100;
 
 
 // ----------------------
-// SensorErrors
+// Wall Data
 // ----------------------
 
 

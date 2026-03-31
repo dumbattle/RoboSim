@@ -197,7 +197,7 @@ void MoveForward() {
     for (int i = 0; i < TILE_TYPE_COUNT; i++) {
         _confidence[ny][nx][i] = 0; 
     }
-    _confidence[ny][nx][wallType + 1] = 1.1; // 1.1 for more stable float comparisons
+    _confidence[ny][nx][wallType + 1] = 1;
 
 
     if (world[ny][nx] >= 0) {
@@ -264,7 +264,7 @@ void ScanAhead(int obstacleIndex) {
 
     // Skip: tile already certain (confidence == 1 for any type)
     for (int i = 0; i < TILE_TYPE_COUNT; i++) {
-        if (conf[i] >= 1.0f) return;
+        if (conf[i] >= CONFIDENCE_COMPLETION_THRESH) return;
     }
 
     // Cost battery
@@ -305,6 +305,14 @@ void ScanAhead(int obstacleIndex) {
             conf[i] /= total;
     }
 
+    // If close enough to truth, reveal completely
+    if (conf[world[ny][nx] + 1] > CONFIDENCE_COMPLETION_THRESH) {
+        for (int i = 0; i < TILE_TYPE_COUNT; i++) {
+            conf[i] = 0;
+        }
+
+        conf[world[ny][nx] + 1] = 1;
+    }
     printMap();
 }
 
