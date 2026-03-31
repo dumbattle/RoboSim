@@ -31,6 +31,7 @@ extern std::vector<SensorError> sensorErrors;
 extern int numMoves;
 extern int numTurns;
 extern int numScans;
+extern int numCrashes[WALL_TYPE_COUNT];
 
 // Direction delta tables (indexed by Direction enum)
 extern const int DX[4];

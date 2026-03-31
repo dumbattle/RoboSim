@@ -77,83 +77,79 @@ bool NavigateTo(int tx, int ty) {
 }
 
 int main() {
-    try {
-        Reset();
+    Reset();
 
-        // DFS stack stores positions to backtrack to
-        stack<pair<int, int>> dfsStack;
+    // DFS stack stores positions to backtrack to
+    stack<pair<int, int>> dfsStack;
 
-        int x, y;
+    int x, y;
+    GetPosition(x, y);
+    dfsStack.push({x, y});
+
+    while (HasBattery() && !dfsStack.empty()) {
         GetPosition(x, y);
-        dfsStack.push({x, y});
 
-        while (HasBattery() && !dfsStack.empty()) {
-            GetPosition(x, y);
+        // Find an unvisited neighbor that looks passable
+        Direction dirs[4] = {NORTH, EAST, SOUTH, WEST};
+        int bestNx = -1, bestNy = -1;
+        Direction bestDir = NORTH;
 
-            // Find an unvisited neighbor that looks passable
-            Direction dirs[4] = {NORTH, EAST, SOUTH, WEST};
-            int bestNx = -1, bestNy = -1;
-            Direction bestDir = NORTH;
+        for (Direction d : dirs) {
+            int nx = x, ny = y;
+            Translate(nx, ny, d);
+            if (!InRange(nx, ny)) continue;
+            if (TileVisited(nx, ny)) continue;
 
-            for (Direction d : dirs) {
-                int nx = x, ny = y;
-                Translate(nx, ny, d);
-                if (!InRange(nx, ny)) continue;
-                if (TileVisited(nx, ny)) continue;
-
-                // Must face direction d before scanning
-                TurnToDirection(d);
+            // Must face direction d before scanning
+            TurnToDirection(d);
+            for (size_t s = 0; s < 100; s++) {
                 for (int i = 0; i < WALL_TYPE_COUNT; i++) {
 
-                    for (size_t s = 0; s < 100; s++) {
-                        InfoGain ig = GetExpectedInfoGain(nx, ny, i);
-                        if (ig.expected > 0.01f) ScanAhead(i);
-                    }
-                    
+                    InfoGain ig = GetExpectedInfoGain(nx, ny, i);
+                    if (ig.expected > 0.01f) ScanAhead(i);
                 }
-
-                float emptyConf = GetTileConfidence(nx, ny, 0);
-                if (emptyConf >= 0.4f) {
-                    bestNx = nx;
-                    bestNy = ny;
-                    bestDir = d;
-                    break; // take first viable unvisited neighbor
-                }
+                
             }
 
-            if (bestNx != -1) {
-                // Push current position onto stack before moving
-                dfsStack.push({x, y});
-
-                TurnToDirection(bestDir);
-                MoveForward();
-
-                // Check we actually moved (didn't hit a wall)
-                int nx, ny;
-                GetPosition(nx, ny);
-                if (nx == x && ny == y) {
-                    // Didn't move — wall hit, pop the push we just did
-                    dfsStack.pop();
-                }
-            } 
-            else {
-                // No unvisited neighbors — backtrack
-                if (dfsStack.empty()) break;
-
-                auto [bx, by] = dfsStack.top();
-                NavigateTo(bx, by);
-                dfsStack.pop();
-                // if (!NavigateTo(bx, by)) {
-                //     // Can't navigate back — try popping more
-                //     dfsStack.pop();
-                // }
+            float emptyConf = GetTileConfidence(nx, ny, -1);
+            if (emptyConf >= 0.4f) {
+                bestNx = nx;
+                bestNy = ny;
+                bestDir = d;
+                break; // take first viable unvisited neighbor
             }
         }
 
-        PrintResults();
-            // Code that might throw an exception
-    } catch (const std::exception& e) {
-       cout << e.what(); 
-    } 
-        return 0;
+        if (bestNx != -1) {
+            // Push current position onto stack before moving
+            dfsStack.push({x, y});
+
+            TurnToDirection(bestDir);
+            MoveForward();
+
+            // Check we actually moved (didn't hit a wall)
+            int nx, ny;
+            GetPosition(nx, ny);
+            if (nx == x && ny == y) {
+                // Didn't move — wall hit, pop the push we just did
+                dfsStack.pop();
+            }
+        } 
+        else {
+            // No unvisited neighbors — backtrack
+            if (dfsStack.empty()) break;
+
+            auto [bx, by] = dfsStack.top();
+            NavigateTo(bx, by);
+            dfsStack.pop();
+            // if (!NavigateTo(bx, by)) {
+            //     // Can't navigate back — try popping more
+            //     dfsStack.pop();
+            // }
+        }
+    }
+
+    PrintResults();
+        
+    return 0;
 }

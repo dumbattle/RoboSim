@@ -28,10 +28,11 @@
 
 ## New API — sensor information
 
-- [X] `GetErrorRates(ObstacleType) → float falsePos, float falseNeg`
-- [X] `GetErrorDeltas(ObstacleType) → float fpDelta, float fnDelta`
-- [X] `GetTileConfidence(x, y) → int[]` (indexed by obstacle type)
-- [X] `GetExpectedInfoGain(x, y, ObstacleType) → InfoGain`
+- [X] `GetErrorRates(ObstacleType) -> float falsePos, float falseNeg`
+- [X] `GetErrorDeltas(ObstacleType) -> float fpDelta, float fnDelta`
+- [X] `GetTileConfidence(x, y) -> int[]` (indexed by obstacle type)
+- [X] `GetExpectedInfoGain(x, y, ObstacleType) -> InfoGain`
+- [X] `GetEntropy(int x, int y) -> float`
 
 ## New API — helpers
 
@@ -75,7 +76,7 @@
 - [ ] Update API reference with new functions
 - [ ] Add state machine usage example
 - [ ] Add sensor state strategy table
-- [ ] Document student progression (V1 → V2 upgrade path)
+- [ ] Document student progression (V1 -> V2 upgrade path)
 
 ## Benchmark
 

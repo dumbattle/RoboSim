@@ -11,6 +11,7 @@ std::vector<SensorError> sensorErrors(WALL_TYPE_COUNT);
 int numMoves = 0;
 int numTurns = 0;
 int numScans = 0;
+int numCrashes[WALL_TYPE_COUNT] = { };
 
 
 char getRobotChar() {

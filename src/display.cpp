@@ -310,13 +310,25 @@ void printMap(bool force) {
 void printStatus() {
     // Always write stats to stdout so they survive after the window closes.
     cout 
-         << "\nFinal Score: " << countVisited() << " unique tiles visited.\n"
+         << "\nFinal Score      : " << countVisited() << "\n"
          << "Battery remaining: " << robot.battery << "\n\n"
-         << "Steps Taken  : " << numMoves << "\n"
-         << "Turns Made   : " << numTurns << "\n"
-         << "Tiles Scanned: " << numScans << "\n"
+         << "Steps Taken      : " << numMoves << "\n"
+         << "Turns Made       : " << numTurns << "\n"
+         << "Tiles Scanned    : " << numScans << "\n"
         //  << "\"score\": "<<countVisited()<<", \"steps\": "<<numMoves<<", \"turns\": "<<numTurns<<", \"scans\": "<<numScans<< endl
     ;
+    cout << " -- Crashes -- \n";
+
+    for (size_t i = 0; i < WALL_TYPE_COUNT; i++) {
+        string name = WALL_DATA[i].name;
+        
+        cout << name << string(string("Battery remaining").length() - name.length(), ' ') << ": " << numCrashes[i] << "\n";
+    }
+
+
+
+
+
 
     // Draw a final frozen frame.
     printMap(true);

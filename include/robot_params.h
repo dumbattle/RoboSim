@@ -1,6 +1,7 @@
 #ifndef ROBOT_PARAMS_H
 #define ROBOT_PARAMS_H
 #include <vector>
+#include <string>
 
 
 const float CONFIDENCE_COMPLETION_THRESH = 0.95;
@@ -18,6 +19,7 @@ const int MAP_HEIGHT = 100;
 
 
 struct WallData {
+    std::string name;
     int damage;
     std::vector<std::vector<int>> errorRanges;
     int transitionTime;
@@ -41,15 +43,17 @@ struct WallData {
 // };
 const WallData WALL_DATA[] = {
     {
+        "Wall",
         50,                                 // Damage
-        { {0, 25} },                        // errorRanges
+        { {0, 50} },                        // errorRanges
         500,                                 // transitionTime
         { 15, 25 },                         // restPeriod
         { 244, 55, 55}                      // Color
     },
     {
+        "Lake",
         800,                                // Damage
-        { {5, 25} },                        // errorRanges
+        { {5, 50} },                        // errorRanges
         200,                                 // transitionTime
         { 25, 40 },                         // restPeriod
         { 55, 212, 255}                      // Color

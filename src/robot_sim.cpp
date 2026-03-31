@@ -296,6 +296,7 @@ void MoveForward() {
 
     if (world[ny][nx] >= 0) {
         drainBattery(WALL_DATA[wallType].damage);
+        numCrashes[world[ny][nx]] += 1;
     }
     else {
         robot.x = nx;
@@ -408,8 +409,17 @@ void ScanAhead(int obstacleIndex) {
     printMap();
 }
 
+float GetEntropy(int x, int y) {
+    static const float MAX_ENTROPY = log2f((float)TILE_TYPE_COUNT);
+    const auto& conf = _confidence[y][x];
+    float h = 0.0f;
+    for (int i = 0; i < TILE_TYPE_COUNT; i++)
+        if (conf[i] > 0.0f) h -= conf[i] * log2f(conf[i]);
+    return h / MAX_ENTROPY;
+}
+
 float GetTileConfidence(int x, int y, int obstacleIndex) {
-    return _confidence[y][x][obstacleIndex];
+    return _confidence[y][x][obstacleIndex + 1];
 }
 
 // index 0 => empty tile

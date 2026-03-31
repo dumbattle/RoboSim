@@ -98,6 +98,12 @@ void ScanAhead(int obstacleIndex);
 //   index 0          -> empty
 //   index 1..N       -> obstacle type (index - 1)
 // Initially uniform. Updated by ScanAhead() and revealed on move.
+// If the (correct) confidence reaches a threshold, the tile will be fully revealed and confidence values set to 1's and 0's
+
+// Returns the Shannon entropy of tile (x, y)'s confidence distribution, normalized to [0, 1].
+// 0 = fully certain (one outcome has probability 1).
+// 1 = fully uncertain (uniform distribution across all tile types).
+float GetEntropy(int x, int y);
 
 // Returns the confidence (0–1) that tile (x, y) is obstacle type obstacleIndex.
 // Pass obstacleIndex = -1 … N-1; or use the array overload for all at once.
@@ -131,6 +137,7 @@ InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex);
 // If the destination is a wall, the wall's damage is also subtracted from battery
 // and the robot does NOT advance. Reveals the destination tile's true type.
 // Crashes (battery -> 0) if the robot would move off the map.
+// The tile will be fully revealed (check confidence)
 void MoveForward();
 
 // Rotates the robot 90° left / right in place. Costs BATTERY_TURN each.
