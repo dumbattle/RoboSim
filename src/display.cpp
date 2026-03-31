@@ -226,8 +226,11 @@ static sf::Color tileColour(int x, int y) {
     const int MAX = 255;
 
     int t = (int)(max_c * (MAX - MIN) + MIN);
-    result *= sf::Color(t, t, t);
 
+    if (!reachable[y][x] && !isBorderTile[y][x]) {
+        t = 177 < t ? 177 : t;
+    }
+    result *= sf::Color(t, t, t);
     return result;
 }
 

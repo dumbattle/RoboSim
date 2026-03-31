@@ -55,6 +55,7 @@
 - [X] Sensor error rate HUD display
 - [ ] Tile confidence visualization (optional)
 - [ ] Current mode label in HUD (optional)
+- [X] Reveal wall chunks
 
 ## Logging/Feedback
 - [ ] Track crashes per wall type

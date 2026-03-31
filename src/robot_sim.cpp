@@ -7,8 +7,101 @@
 #include <cstdlib>
 #include <cmath>
 #include <algorithm>
+#include <queue>
 
 using namespace std;
+
+// ----------------------
+// Chunk reveal system
+// ----------------------
+
+struct Chunk {
+    vector<pair<int,int>> tiles;
+    int uncertainBorderCount;
+    bool revealed;
+};
+
+static vector<Chunk>            chunks;
+static vector<vector<int>>      tileChunkID;   // -1 = reachable (not in any chunk)
+       vector<vector<bool>>     isBorderTile;  // wall tile adjacent to a reachable empty tile
+static vector<vector<bool>>     borderCertain; // border tile already counted as certain
+
+static void revealChunk(int id) {
+    Chunk& chunk = chunks[id];
+    if (chunk.revealed) return;
+    chunk.revealed = true;
+    for (auto [x, y] : chunk.tiles) {
+        auto& conf = _confidence[y][x];
+
+        if (conf[world[y][x] + 1] < CONFIDENCE_COMPLETION_THRESH) {
+            const float HIGHLIGHT_STRENGTH = 1;
+            for (int i = 0; i < TILE_TYPE_COUNT; i++) conf[i] = (1 - HIGHLIGHT_STRENGTH) / TILE_TYPE_COUNT;
+            conf[world[y][x] + 1] = HIGHLIGHT_STRENGTH; // +1: index 0 = empty, index N = wall type N-1
+        }
+    }
+}
+
+static void checkChunkReveal(int x, int y) {
+    int id = tileChunkID[y][x];
+    if (id == -1 || !isBorderTile[y][x]) return;
+    if (borderCertain[y][x]) return;
+    Chunk& chunk = chunks[id];
+    if (chunk.revealed) return;
+
+    borderCertain[y][x] = true;
+    if (--chunk.uncertainBorderCount <= 0)
+        revealChunk(id);
+}
+
+static void buildChunks() {
+    tileChunkID.assign(MAP_HEIGHT, vector<int>(MAP_WIDTH, -1));
+    isBorderTile.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));
+    borderCertain.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));
+    chunks.clear();
+
+    const int dx[4] = {1, -1, 0,  0};
+    const int dy[4] = {0,  0, 1, -1};
+
+    for (int sy = 0; sy < MAP_HEIGHT; sy++)
+    for (int sx = 0; sx < MAP_WIDTH;  sx++) {
+        if (reachable[sy][sx] || tileChunkID[sy][sx] != -1) continue;
+
+        int id = (int)chunks.size();
+        chunks.push_back({{}, 0, false});
+        Chunk& chunk = chunks.back();
+
+        queue<pair<int,int>> q;
+        q.push({sx, sy});
+        tileChunkID[sy][sx] = id;
+
+        while (!q.empty()) {
+            auto [x, y] = q.front(); q.pop();
+            chunk.tiles.push_back({x, y});
+
+            // Border: wall tile with at least one reachable empty neighbor
+            if (world[y][x] >= 0) {
+                for (int i = 0; i < 4; i++) {
+                    int nx = x + dx[i], ny = y + dy[i];
+                    if (InRange(nx, ny) && reachable[ny][nx]) {
+                        isBorderTile[y][x] = true;
+                        chunk.uncertainBorderCount++;
+                        break;
+                    }
+                }
+            }
+
+            for (int i = 0; i < 4; i++) {
+                int nx = x + dx[i], ny = y + dy[i];
+                if (InRange(nx, ny) && !reachable[ny][nx] && tileChunkID[ny][nx] == -1) {
+                    tileChunkID[ny][nx] = id;
+                    q.push({nx, ny});
+                }
+            }
+        }
+
+      
+    }
+}
 
 // ----------------------
 // Internal helpers
@@ -155,6 +248,7 @@ void Reset(long randomSeed) {
     generateWorld(randomSeed);
 
     pair<int,int> start = randomEmptyTile();
+    buildChunks();
     robot.x       = start.first;
     robot.y       = start.second;
     robot.dir     = EAST;
@@ -195,10 +289,10 @@ void MoveForward() {
 
         
     for (int i = 0; i < TILE_TYPE_COUNT; i++) {
-        _confidence[ny][nx][i] = 0; 
+        _confidence[ny][nx][i] = 0;
     }
     _confidence[ny][nx][wallType + 1] = 1;
-
+    checkChunkReveal(nx, ny);
 
     if (world[ny][nx] >= 0) {
         drainBattery(WALL_DATA[wallType].damage);
@@ -305,13 +399,11 @@ void ScanAhead(int obstacleIndex) {
             conf[i] /= total;
     }
 
-    // If close enough to truth, reveal completely
+    // If close enough to truth, snap to certain and check for chunk reveal
     if (conf[world[ny][nx] + 1] > CONFIDENCE_COMPLETION_THRESH) {
-        for (int i = 0; i < TILE_TYPE_COUNT; i++) {
-            conf[i] = 0;
-        }
-
+        for (int i = 0; i < TILE_TYPE_COUNT; i++) conf[i] = 0;
         conf[world[ny][nx] + 1] = 1;
+        checkChunkReveal(nx, ny);
     }
     printMap();
 }

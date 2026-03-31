@@ -105,9 +105,9 @@ int main() {
                 TurnToDirection(d);
                 for (int i = 0; i < WALL_TYPE_COUNT; i++) {
 
-                    for (size_t s = 0; s < 10; s++) {
+                    for (size_t s = 0; s < 100; s++) {
                         InfoGain ig = GetExpectedInfoGain(nx, ny, i);
-                        if (ig.expected > 0.05f) ScanAhead(i);
+                        if (ig.expected > 0.01f) ScanAhead(i);
                     }
                     
                 }

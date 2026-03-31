@@ -9,6 +9,7 @@ using namespace std;
 
 vector<vector<int>> world;
 vector<vector<int>> wallLayers;
+vector<vector<bool>> reachable;
 mt19937 rng;
 
 // ----------------------
@@ -160,6 +161,11 @@ pair<int,int> randomEmptyTile() {
     }
 
     if (largestRegion.empty()) return {-1, -1};
+
+    reachable.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));
+    for (auto [x, y] : largestRegion)
+        reachable[y][x] = true;
+
     uniform_int_distribution<int> dist(0, (int)largestRegion.size() - 1);
     return largestRegion[dist(rng)];
 }

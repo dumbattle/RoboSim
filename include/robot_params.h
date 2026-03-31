@@ -3,7 +3,7 @@
 #include <vector>
 
 
-const float CONFIDENCE_COMPLETION_THRESH = 0.999;
+const float CONFIDENCE_COMPLETION_THRESH = 0.95;
 // ----------------------
 // Map Parameters
 // ----------------------
