@@ -419,7 +419,6 @@ int GetMapHeight() { return MAP_HEIGHT; }
 
 
 void PrintResults() {
-    
     printStatus();
 }
 

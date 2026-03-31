@@ -136,16 +136,19 @@ static sf::Color tileColour(int x, int y) {
     auto c = _confidence[y][x];
 
     float max_c = 0;
-    for (int i = 0; i < TILE_TYPE_COUNT; i++) {
-        max_c = max_c > c[i] ? max_c : c[i];
-    }
+    // for (int i = 0; i < TILE_TYPE_COUNT; i++) {
+    //     max_c = max_c > c[i] ? max_c : c[i];
+    // }
     
-    if (max_c > 1) {max_c = 1;}
-    max_c = (max_c - (1.0 / TILE_TYPE_COUNT)) / (1 - 1.0 / TILE_TYPE_COUNT);
+    // if (max_c > 1) {max_c = 1;}
+    // max_c = (max_c - (1.0 / TILE_TYPE_COUNT)) / (1 - 1.0 / TILE_TYPE_COUNT);
     
     max_c = _confidence[y][x][world[y][x] + 1];
     if (max_c > 1) {max_c = 1;}
-    const int MIN = 0;
+    max_c = (max_c - (1.0 / TILE_TYPE_COUNT)) / (1 - 1.0 / TILE_TYPE_COUNT);
+
+
+    const int MIN = 16;
     const int MAX = 255;
 
     int t = (int)(max_c * (MAX - MIN) + MIN);
@@ -208,10 +211,10 @@ void closeDisplay() {
     if (window.isOpen()) window.close();
 }
 
-void printMap() {
+void printMap(bool force) {
     static int requestCount = -1;
     requestCount += 1;
-    if (requestCount % PRINT_INTERVAL != 0) {
+    if (requestCount % PRINT_INTERVAL != 0 && !force) {
         return;
     }
 
@@ -239,5 +242,14 @@ void printStatus() {
     ;
 
     // Draw a final frozen frame.
-    printMap();
+    printMap(true);
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed){
+                window.close();
+            }
+        }
+    }
 }

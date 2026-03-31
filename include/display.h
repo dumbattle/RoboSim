@@ -9,7 +9,7 @@ void closeDisplay();
 
 // Redraws the map + HUD.  Called automatically by MoveForward / Turn* / Reset.
 // Also pumps the SFML event queue so the window stays responsive.
-void printMap();
+void printMap(bool force=false);
 
 // Prints final statistics to stdout and redraws the final frame.
 void printStatus();

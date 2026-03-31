@@ -56,6 +56,11 @@
 - [ ] Tile confidence visualization (optional)
 - [ ] Current mode label in HUD (optional)
 
+## Logging/Feedback
+- [ ] Track crashes per wall type
+- [ ] MoveForward returns tile type
+
+
 ## Parameters (robot_params.h)
 
 - [X] `WALL_COLLISION_COST` — energy drained on wall hit
