@@ -9,7 +9,7 @@ const sf::Color COLOR_ROBOT       = sf::Color(50,  220, 80);    // bright green
 const sf::Color COLOR_WALL        = sf::Color(210, 60, 60);   // light grey
 const sf::Color COLOR_CLIFF       = sf::Color(220, 50,  50);    // red
 const sf::Color COLOR_TRAP        = sf::Color(230, 40, 40);    // amber
-const sf::Color COLOR_VISITED     = sf::Color(60,  100, 140);   // muted blue
+const sf::Color COLOR_VISITED     = sf::Color(60,  100, 200);   // muted blue
 const sf::Color COLOR_UNVISITED   = sf::Color(50,  50,  50);    // dark grey dot
 
 // ============================================================

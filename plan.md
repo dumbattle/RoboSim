@@ -50,9 +50,9 @@
 
 ## Display
 
-- [ ] Distinct colors for wall vs cliff tiles
+- [X] Distinct colors for wall vs cliff tiles
 - [ ] Unique erorr messages for cliff types
-- [ ] Sensor error rate HUD display
+- [X] Sensor error rate HUD display
 - [ ] Tile confidence visualization (optional)
 - [ ] Current mode label in HUD (optional)
 

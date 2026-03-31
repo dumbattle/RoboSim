@@ -166,7 +166,7 @@ void Reset(long randomSeed) {
 
 
 
-    for(int i = 0; i < 100; i++) {
+    for(int i = 0; i < 1000; i++) {
         Tick();
     }
 
@@ -220,7 +220,6 @@ void MoveForward() {
 }
 
 void TurnLeft() {
-    Tick();
     numTurns++;
     if (!drainBattery(BATTERY_TURN)) return;
     robot.dir = Left(robot.dir);
@@ -228,7 +227,6 @@ void TurnLeft() {
 }
 
 void TurnRight() {
-    Tick();
     numTurns++;
     if (!drainBattery(BATTERY_TURN)) return;
     robot.dir = Right(robot.dir);
@@ -255,8 +253,6 @@ void TurnToDirection(Direction d) {
 
 
 void ScanAhead(int obstacleIndex) {
-    Tick();
-
     int dx, dy;
     ToVector(robot.dir, dx, dy);
     int nx = robot.x + dx;

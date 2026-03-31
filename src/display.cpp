@@ -10,6 +10,7 @@
 #include <thread>
 #include <chrono>
 #include <cmath>
+#include <cmath>
 #include <fstream>
 using namespace std;
 
@@ -21,6 +22,9 @@ static const int   MARGIN        = 6;     // padding inside the HUD
 static const int   BAR_SEGMENTS  = 20;    // number of battery bar blocks
 static const int   FONT_SIZE_LG  = 16;    // score / stats text
 static const int   FONT_SIZE_SM  = 13;    // battery label
+
+// Data Panel
+static const int   SIDE_BAR_WIDTH = 512 + 16;    // 
 
 
 // ----------------------------------------------------------------
@@ -57,11 +61,77 @@ static void pollEvents() {
 // ----------------------------------------------------------------
 // HUD drawing
 // ----------------------------------------------------------------
+
 static sf::Color batteryColour(double pct) {
     if (pct > 60) return COLOR_BATTERY_HIGH;
     if (pct > 30) return COLOR_BATTERY_MED;
     return COLOR_BATTERY_LOW;
 }
+
+static void drawInfoPanel() {
+    static const int SAMPLE_W = 128;
+    static const int SAMPLE_H = 12;
+    static const int SAMPLE_SIZE = 2;
+    
+    static bool initialized = false;
+
+    static int sensorSamples[WALL_TYPE_COUNT][2][SAMPLE_W][SAMPLE_H];
+
+
+    if (!initialized) {
+        initialized = true;
+
+        for (int a = 0; a < WALL_TYPE_COUNT; a ++) {
+            for (int b = 0; b < 2; b ++) {
+                for (int c = 0; c < SAMPLE_W; c ++) {
+                    for (int d = 0; d < SAMPLE_H; d ++) {
+                        const int BAND = 5;
+                        int bias = (50 - BAND) * c / SAMPLE_W;
+                        sensorSamples[a][b][c][d] = (rand() % BAND) + bias;
+                    }
+                }
+            }
+        }
+    }
+
+    int startY = HUD_HEIGHT;
+
+
+    for (int t = 0; t < WALL_TYPE_COUNT; t++) {
+        int startX = window.getSize().x - SIDE_BAR_WIDTH;
+        
+        WallData wd = WALL_DATA[t];
+        auto c = wd.color;
+        int fp, fn;
+        GetErrorRates(t, fp, fn);
+        int f[] = {fp, fn};
+        int score = GetScore();
+
+
+        for(auto i : {0, 1}) {
+            auto& sample = sensorSamples[t][i];
+            for (int y = 0; y < SAMPLE_H; y++) {
+                for (int x = 0; x < SAMPLE_W; x++) {
+                    
+                    int sensorBase = sample[i == 0 ? x : SAMPLE_W - x - 1][y] + f[i];
+                    
+                    sf::RectangleShape tile(sf::Vector2f(SAMPLE_SIZE, SAMPLE_SIZE));
+                    tile.setPosition(startX + x * SAMPLE_SIZE, startY + y * SAMPLE_SIZE); 
+
+                    auto negColor = i == 0? COLOR_VISITED : sf::Color(c[0], c[1], c[2]) ;
+                    tile.setFillColor(sensorBase >= 50
+                         ? sf::Color(c[0] / 3, c[1] / 3, (int)(c[2] / 2.8))
+                         : negColor);
+                    window.draw(tile);
+                }
+            }
+            startX += (SAMPLE_W + 1)* (SAMPLE_SIZE);
+        }
+
+        startY += (SAMPLE_H + 2) * (SAMPLE_SIZE);
+    }
+}
+
 static void drawHUD() {
     const int windowW = window.getSize().x;
  
@@ -117,7 +187,10 @@ static void drawHUD() {
         score.setPosition(MARGIN, HUD_HEIGHT / 2 + 4);
         window.draw(score);
     }
+
+    drawInfoPanel();
 }
+
 // ----------------------------------------------------------------
 // Map drawing
 // ----------------------------------------------------------------
@@ -128,7 +201,8 @@ static sf::Color tileColour(int x, int y) {
     sf::Color result;
 
     if (world[y][x] >= 0) {
-        result = COLOR_WALL;
+        auto c = WALL_DATA[world[y][x]].color;
+        result = sf::Color(c[0], c[1], c[2]);
     }
     else {
         result = _visited[y][x] ? COLOR_VISITED : COLOR_UNVISITED;
@@ -183,7 +257,7 @@ static void drawMap() {
 // Public API
 // ----------------------------------------------------------------
 void initDisplay() {
-    int winW = MAP_WIDTH  * TILE_PX;
+    int winW = MAP_WIDTH  * TILE_PX + SIDE_BAR_WIDTH;
     int winH = MAP_HEIGHT * TILE_PX + HUD_HEIGHT;
 
     window.create(
