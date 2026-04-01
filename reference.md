@@ -43,7 +43,7 @@ distribution across all tile types (fully uncertain). It updates in three ways:
 - **Moving onto a tile** — sets that tile's confidence to 100% (ground truth, fully certain).
 - **Moving into a wall** — sets that tile's confidence to 100% for the wall type hit.
 - **Threshold reveal** — once any tile type's confidence crosses `CONFIDENCE_COMPLETION_THRESH`
-  (default 0.95), the tile is fully revealed: that type is set to 1.0, all others to 0.0.
+  correctly, (default 0.95), the tile is fully revealed: that type is set to 1.0, all others to 0.0.
   This can happen from scanning alone, without physically visiting the tile.
 
 Once a tile is fully revealed, further `ScanAhead()` calls on it are free (no battery cost).
@@ -77,7 +77,7 @@ void TurnToDirection(Direction); // rotate to face Direction using minimum turns
 ### Sensor — scanning *(costs battery)*
 ```cpp
 // Scans the tile directly ahead for the given wall type. Updates tile confidence.
-// FREE if the tile is already certain (confidence == 1) or the error rate is 50%.
+// FREE if the tile is already certain (confidence == 1) or the error rates are 50% (complete noise).
 // wallID: [1, WALL_TYPE_COUNT]
 void ScanAhead(int wallID);
 ```
@@ -167,18 +167,30 @@ WEST    // -X
 `state_machine.h` provides a lightweight named-state dispatcher for organising multi-phase algorithms.
 
 ```cpp
-#include "../include/state_machine.h"
+#include "state_machine.h"
 
 StateMachine sm;
 
-sm.Add("explore", []{ /* runs every tick in explore mode */ });
-sm.OnEnter("explore", []{ /* called once when entering explore */ });
-sm.OnExit("explore",  []{ /* called once when leaving explore */ });
+sm.Add("explore", Explore);
+sm.OnEnter("explore", EnterExplore);
+sm.OnExit("explore",  ExitExplore);
 
-sm.Add("return", []{ /* runs every tick in return mode */ });
+sm.Add("return", []{ Return });
 
 sm.SetMode("explore");
-while (HasBattery()) sm.Tick();
+while (HasBattery()) { 
+    
+    // Switch state
+    if (...) sm.SetMode("explore");
+    if (...) sm.SetMode("collect");
+    if (...) sm.SetMode("return");
+    
+    // -- OR --
+    // State handles state changes internally
+
+    // Run current state
+    sm.Tick();
+}
 ```
 
 ```cpp
@@ -191,12 +203,35 @@ void Tick();             // execute the current mode's tick function once
 
 ---
 
+## Important Params
+
+```cpp
+// robot_params.h
+
+const float CONFIDENCE_COMPLETION_THRESH; // if confidence for correct tile surpasses this, confidence will be set to 100%.
+
+const int WALL_TYPE_COUNT;
+const int TILE_TYPE_COUNT;
+
+const int MAX_BATTERY;        
+
+const int BATTERY_MOVE;           // cost per MoveForward()
+const int BATTERY_TURN;           // cost per TurnLeft/TurnRight()
+const int BATTERY_QUERY_MIN;      // cost per sensor query
+const int BATTERY_QUERY_MAX;      // max cost per sensor query
+
+```
+
+---
+
 ## Writing a Solution
 
 Create `solutions/YourSolution.cpp`:
 
 ```cpp
 #include "robot_api.h"
+#include "robot_params.h"  // option
+#include "state_machine.h" // optiona;
 
 int main() {
     Reset();
@@ -210,4 +245,9 @@ int main() {
 }
 ```
 
-Open the file in VS Code and press `Ctrl+Shift+B` to build. Output: `build\YourSolution.exe`.
+---
+
+## Notes
+
+- You can run out of battery. There is no penalty
+- The robot will automatically track visited cells and their confidences after scans. you do not need to tack this yourself unless you want something unique

@@ -26,7 +26,7 @@
 - [X] Rates are global (same for all tiles at a given tick)
 
 
-## New API — sensor information
+## New API - sensor information
 
 - [X] `GetErrorRates(ObstacleType) -> float falsePos, float falseNeg`
 - [X] `GetErrorDeltas(ObstacleType) -> float fpDelta, float fnDelta`
@@ -34,20 +34,22 @@
 - [X] `GetExpectedInfoGain(x, y, ObstacleType) -> InfoGain`
 - [X] `GetEntropy(int x, int y) -> float`
 
-## New API — helpers
+## New API - helpers
 
-- [X] `TurnToDirection(Direction d)` — shortest rotation
-- [X] `TileVisited(x, y)` — auto-tracked
+- [X] `TurnToDirection(Direction d)` - shortest rotation
+- [X] `TileVisited(x, y)` - auto-tracked
 - [X] Scan memory / confidence tracking (internal bookkeeping)
+- [ ] `RobotAdjacent(Direction d, int& resultX, int& resultY)`
+- [ ] `PositionForward(Direction d, int& resultX, int& resultY)` - tile the robot is facing
 
-## New API — state machine
+## New API - state machine
 
 - [X] `StateMachine` class
-- [X] `sm.Add(name, function)` — register a mode
-- [X] `sm.OnEnter(name, function)` — register an optional listener 
-- [X] `sm.OnExit(name, function)`  — register an optional listener
-- [X] `sm.SetMode(name)` — activate a mode calls onenter/onexit if registered
-- [X] `sm.Tick()` — execute current mode
+- [X] `sm.Add(name, function)` - register a mode
+- [X] `sm.OnEnter(name, function)` - register an optional listener 
+- [X] `sm.OnExit(name, function)`  - register an optional listener
+- [X] `sm.SetMode(name)` - activate a mode calls onenter/onexit if registered
+- [X] `sm.Tick()` - execute current mode
 
 ## Display
 
@@ -57,6 +59,7 @@
 - [ ] Tile confidence visualization (optional)
 - [ ] Current mode label in HUD (optional)
 - [X] Reveal wall chunks
+- [ ] Track/Display EMPTY tiles that were scanned, but not visited
 
 ## Logging/Feedback
 - [X] Track crashes per wall type
@@ -65,8 +68,8 @@
 
 ## Parameters (robot_params.h)
 
-- [X] `WALL_COLLISION_COST` — energy drained on wall hit
-- [X] `CLIFF_KILLS` — bool, cliff collision is fatal
+- [X] `WALL_COLLISION_COST` - energy drained on wall hit
+- [X] `CLIFF_KILLS` - bool, cliff collision is fatal
 - [X] Error rate wave parameters (amplitude, frequency, phase offset per scanner)
 - [X] Error rate floor/ceiling bounds
 

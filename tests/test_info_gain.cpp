@@ -25,7 +25,7 @@ int main() {
 
     // Already certain tile — expected gain should be 0
     SetConfidenceCertain(ax, ay, 0);
-    ig = GetExpectedInfoGain(ax, ay, 0);
+    ig = GetExpectedInfoGain(ax, ay, 1);
     check("Certain tile: expected == 0", ig.expected == 0.0f);
 
     // 50% error rates — scan is pure noise, expected gain should be ~0

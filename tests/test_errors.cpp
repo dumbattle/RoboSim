@@ -47,7 +47,7 @@ int main() {
     SetErrors(1, 15, 15);
     for (int i = 0; i < 100; i++) TurnLeft();  // trigger many Ticks
     GetErrorRates(1, fp, fn);
-    check("SetErrors locks rate — no drift after 100 ticks", fp == 15 && fn == 15);
+    check("SetErrors locks rate - no drift after 100 ticks", fp == 15 && fn == 15);
 
     summary();
     return _failed > 0 ? 1 : 0;
