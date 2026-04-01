@@ -19,8 +19,8 @@ using namespace std;
 //   BATTERY_MOVE              - cost per MoveForward()
 //   BATTERY_TURN              - cost per TurnLeft() / TurnRight()
 //   BATTERY_QUERY_MIN/MAX     - cost per ScanAhead()
-//   WALL_TYPE_COUNT           - number of distinct obstacle types
-//   TILE_TYPE_COUNT           - WALL_TYPE_COUNT + 1  (index 0 = empty)
+//   WALL_TYPE_COUNT           - number of distinct wall types
+//   TILE_TYPE_COUNT           - WALL_TYPE_COUNT + 1  (ID 0 = empty)
 //   SEED                      - default map seed
 //
 // Tips:
@@ -60,25 +60,25 @@ std::string ToString(Direction d);
 // Sensor - error model
 // ============================================================
 //
-// Each obstacle type has independent false-positive and false-negative rates
+// Each wall type has independent false-positive and false-negative rates
 // that drift over time (range 0–50%). Rates are integers representing percent.
 // A rate of 50% is pure noise - ScanAhead() skips automatically.
 
 // Fills (falsePositive, falseNegative) with the current error rates (0–50) for
-// the given obstacle type. Free - no battery cost.
-void GetErrorRates(int obstacleIndex, int& falsePositive, int& falseNegative);
+// the given wall type. wallID: [1, WALL_TYPE_COUNT]. Free - no battery cost.
+void GetErrorRates(int wallID, int& falsePositive, int& falseNegative);
 
 // Fills (falsePositiveRate, falseNegativeRate) with the current rate-of-change
 // of the error rates (units: % per tick). Positive = error is worsening.
-// Useful for deciding whether to scan now vs. wait. Free - no battery cost.
-void GetErrorDeltas(int obstacleIndex, float& falsePositiveRate, float& falseNegativeRate);
+// wallID: [1, WALL_TYPE_COUNT]. Free - no battery cost.
+void GetErrorDeltas(int wallID, float& falsePositiveRate, float& falseNegativeRate);
 
 
 // ============================================================
 // Sensor - scanning
 // ============================================================
 
-// Scans the tile directly ahead for the presence of obstacle type obstacleIndex.
+// Scans the tile directly ahead for the presence of wall type wallID.
 // Performs a Bayesian update on the tile's confidence distribution.
 //
 // Costs BATTERY_QUERY_MIN–BATTERY_QUERY_MAX battery (random each call).
@@ -86,8 +86,8 @@ void GetErrorDeltas(int obstacleIndex, float& falsePositiveRate, float& falseNeg
 //   - the tile is already certain (any type has confidence == 1), or
 //   - the current error rate is 50% (scan would carry no information).
 //
-// obstacleIndex: [0, WALL_TYPE_COUNT)
-void ScanAhead(int obstacleIndex);
+// wallID: [1, WALL_TYPE_COUNT]
+void ScanAhead(int wallID);
 
 
 // ============================================================
@@ -95,22 +95,22 @@ void ScanAhead(int obstacleIndex);
 // ============================================================
 //
 // Each tile stores a probability distribution over TILE_TYPE_COUNT outcomes:
-//   index 0          -> empty
-//   index 1..N       -> obstacle type (index - 1)
+//   ID 0        -> empty
+//   ID 1..N     -> wall type N
 // Initially uniform. Updated by ScanAhead() and revealed on move.
-// If the (correct) confidence reaches a threshold, the tile will be fully revealed and confidence values set to 1's and 0's
+// If the correct type's confidence crosses a threshold, the tile is fully revealed (snapped to 1/0).
 
 // Returns the Shannon entropy of tile (x, y)'s confidence distribution, normalized to [0, 1].
 // 0 = fully certain (one outcome has probability 1).
 // 1 = fully uncertain (uniform distribution across all tile types).
 float GetEntropy(int x, int y);
 
-// Returns the confidence (0–1) that tile (x, y) is obstacle type obstacleIndex.
-// Pass obstacleIndex = -1 … N-1; or use the array overload for all at once.
-float GetTileConfidence(int x, int y, int obstacleIndex);
+// Returns the confidence (0–1) that tile (x, y) is the given type.
+// wallID: 0 = empty, 1..WALL_TYPE_COUNT = wall type ID.
+float GetTileConfidence(int x, int y, int wallID);
 
 // Fills results[0..TILE_TYPE_COUNT-1] with the full confidence distribution for
-// tile (x, y). results[0] = P(empty), results[i] = P(obstacle type i-1).
+// tile (x, y). results[0] = P(empty), results[i] = P(wall type i).
 void GetTileConfidence(int x, int y, float (&results)[TILE_TYPE_COUNT]);
 
 // Describes the information value of one ScanAhead() call on a specific tile.
@@ -123,10 +123,10 @@ struct InfoGain {
     float deltaIfNegative;   // Entropy reduction if scan is silent               [-1, 1]
 };
 
-// Returns the expected information gain of scanning tile (x, y) for obstacle type
-// obstacleIndex, given the current confidence and live sensor error rates.
-// Pure query - no battery cost, no state changes.
-InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex);
+// Returns the expected information gain of scanning tile (x, y) for wall type wallID,
+// given the current confidence and live sensor error rates.
+// wallID: [1, WALL_TYPE_COUNT]. Pure query - no battery cost, no state changes.
+InfoGain GetExpectedInfoGain(int x, int y, int wallID);
 
 
 // ============================================================
@@ -137,8 +137,8 @@ InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex);
 // If the destination is a wall, the wall's damage is also subtracted from battery
 // and the robot does NOT advance. Reveals the destination tile's true type.
 // Crashes (battery -> 0) if the robot would move off the map.
-// The tile will be fully revealed (check confidence)
-// Returns the -1 if the move was successful, -2 if out of bounds or out of batteries, or the wall type
+// Returns 0 if successful, -1 if out of bounds or out of battery,
+// or 1..WALL_TYPE_COUNT = the wall type ID that was hit.
 int MoveForward();
 
 // Rotates the robot 90° left / right in place. Costs BATTERY_TURN each.
@@ -176,9 +176,9 @@ bool InRange(int x, int y);
 // Returns true if the robot has previously stepped on tile (x, y).
 bool TileVisited(int x, int y);
 
-// Returns the battery damage dealt when moving into an obstacle of the given type.
-// obstacleIndex: [0, WALL_TYPE_COUNT)
-int GetObstacleDamage(int obstacleIndex);
+// Returns the battery damage dealt when colliding with wall type wallID.
+// wallID: [1, WALL_TYPE_COUNT]
+int GetObstacleDamage(int wallID);
 
 // Returns the map dimensions in tiles.
 int GetMapWidth();

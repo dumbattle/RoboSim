@@ -23,12 +23,12 @@ static void testWallType(int wallType) {
 
     check("Robot does not move into wall", x == x2 && y == y2);
     check("Battery drained by MOVE + WALL_DATA damage",
-          GetBattery() == b - BATTERY_MOVE - WALL_DATA[wallType].damage);
+          GetBattery() == b - BATTERY_MOVE - WALL_DATA[wallType - 1].damage);
 }
 
 int main() {
     for (int t = 0; t < WALL_TYPE_COUNT; t++)
-        testWallType(t);
+        testWallType(t + 1);
 
     summary();
     return _failed > 0 ? 1 : 0;

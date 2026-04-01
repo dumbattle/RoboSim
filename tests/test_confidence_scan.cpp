@@ -23,22 +23,21 @@ static void testConvergence(int wallType, const char* label) {
     // Scan many times
     for (int i = 0; i < 20 && HasBattery(); i++)
         for (int t = 0; t < WALL_TYPE_COUNT; t++)
-            ScanAhead(t);
+            ScanAhead(t + 1);
 
     float confAfter[TILE_TYPE_COUNT];
     GetTileConfidence(ax, ay, confAfter);
 
-    // The correct slot index: -1 (open) = 0, wall type N = N+1
-    int slot = wallType + 1;
+    int slot = wallType;
 
     check("Correct type confidence increased",    confAfter[slot] > confBefore[slot]);
     check("Correct type is now most likely",       confAfter[slot] == *max_element(confAfter, confAfter + TILE_TYPE_COUNT));
 }
 
 int main() {
-    testConvergence(-1, "Open tile");
+    testConvergence(0, "Open tile");
     for (int t = 0; t < WALL_TYPE_COUNT; t++)
-        testConvergence(t, ("Wall type " + to_string(t)).c_str());
+        testConvergence(t + 1, ("Wall type " + to_string(t)).c_str());
 
     summary();
     return _failed > 0 ? 1 : 0;

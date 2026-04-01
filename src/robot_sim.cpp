@@ -162,8 +162,8 @@ static bool drainBattery(int cost) {
 // Sensor API
 // ----------------------
 
-void GetErrorRates(int obstacleIndex, int& falsePositive, int& falseNegative) {
-    auto& errors = sensorErrors[obstacleIndex];
+void GetErrorRates(int wallID, int& falsePositive, int& falseNegative) {
+    auto& errors = sensorErrors[wallID - 1];
     falsePositive = errors.falsePositive.currentRate;
     falseNegative = errors.falseNegative.currentRate;
 
@@ -174,8 +174,8 @@ void GetErrorRates(int obstacleIndex, int& falsePositive, int& falseNegative) {
 }
 
 
-void GetErrorDeltas(int obstacleIndex, float& falsePositive, float& falseNegative) {
-    auto errors = sensorErrors[obstacleIndex];
+void GetErrorDeltas(int wallID, float& falsePositive, float& falseNegative) {
+    auto errors = sensorErrors[wallID - 1];
     auto& fp = errors.falsePositive;
     auto& fn = errors.falseNegative;
 
@@ -274,7 +274,7 @@ int MoveForward() {
 
     static int score = 0;
     numMoves++;
-    if (!drainBattery(BATTERY_MOVE)) return -2;
+    if (!drainBattery(BATTERY_MOVE)) return -1;
     int dx, dy;
     ToVector(robot.dir, dx, dy);
     int nx = robot.x + dx;
@@ -282,7 +282,7 @@ int MoveForward() {
 
     if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) {
         crash("Robot fell off the map!");
-        return -2;
+        return -1;
     }
 
     int wallType = world[ny][nx];
@@ -312,7 +312,7 @@ int MoveForward() {
     }
    
     printMap();
-    return wallType;
+    return wallType + 1;
 }
 
 void TurnLeft() {
@@ -348,7 +348,7 @@ void TurnToDirection(Direction d) {
 
 
 
-void ScanAhead(int obstacleIndex) {
+void ScanAhead(int wallID) {
     int dx, dy;
     ToVector(robot.dir, dx, dy);
     int nx = robot.x + dx;
@@ -370,7 +370,7 @@ void ScanAhead(int obstacleIndex) {
 
     // Get error rates
     int fp, fn;
-    GetErrorRates(obstacleIndex, fp, fn);
+    GetErrorRates(wallID, fp, fn);
 
     // Skip: pure noise — scan carries no information
     if (fp >= 50 && fn >= 50) return;
@@ -379,7 +379,7 @@ void ScanAhead(int obstacleIndex) {
     float fnRate = fn / 100.0f;
 
     // Apply error to ground truth to get sensor result
-    bool isObstacle = (world[ny][nx] == obstacleIndex);
+    bool isObstacle = (world[ny][nx] == wallID - 1);
     bool result = isObstacle
         ? (rand() % 100) >= fn   // true unless false negative fires
         : (rand() % 100) < fp;   // false unless false positive fires
@@ -387,7 +387,7 @@ void ScanAhead(int obstacleIndex) {
     // Bayesian update: multiply each prior by likelihood of this result
     float total = 0.0f;
     for (int i = 0; i < TILE_TYPE_COUNT; i++) {
-        bool isTarget = (i == obstacleIndex + 1);
+        bool isTarget = (i == wallID);
         float likelihood = result
             ? (isTarget ? (1.0f - fnRate) : fpRate)          // sensor said YES
             : (isTarget ? fnRate           : (1.0f - fpRate));// sensor said NO
@@ -419,8 +419,8 @@ float GetEntropy(int x, int y) {
     return h / MAX_ENTROPY;
 }
 
-float GetTileConfidence(int x, int y, int obstacleIndex) {
-    return _confidence[y][x][obstacleIndex + 1];
+float GetTileConfidence(int x, int y, int wallID) {
+    return _confidence[y][x][wallID];
 }
 
 // index 0 => empty tile
@@ -431,7 +431,7 @@ void GetTileConfidence(int x, int y, float (&results)[TILE_TYPE_COUNT]) {
     }
 }
 
-InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex) {
+InfoGain GetExpectedInfoGain(int x, int y, int wallID) {
     const float MAX_ENTROPY = log2f((float)TILE_TYPE_COUNT);
     const float* prior = _confidence[y][x].data();
 
@@ -441,13 +441,13 @@ InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex) {
         if (prior[i] > 0.0f) hBefore -= prior[i] * log2f(prior[i]);
 
     int fp, fn;
-    GetErrorRates(obstacleIndex, fp, fn);
+    GetErrorRates(wallID, fp, fn);
     float fpRate = fp / 100.0f;
     float fnRate = fn / 100.0f;
 
     // P(scan fires) = P(true positive) + P(false positive)
-    float pPos = prior[obstacleIndex + 1] * (1.0f - fnRate)
-               + (1.0f - prior[obstacleIndex + 1]) * fpRate;
+    float pPos = prior[wallID] * (1.0f - fnRate)
+               + (1.0f - prior[wallID]) * fpRate;
     float pNeg = 1.0f - pPos;
 
     // Compute entropy of posterior for a given outcome (true/false)
@@ -455,7 +455,7 @@ InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex) {
         float post[TILE_TYPE_COUNT];
         float total = 0.0f;
         for (int i = 0; i < TILE_TYPE_COUNT; i++) {
-            bool isTarget = (i == obstacleIndex + 1);
+            bool isTarget = (i == wallID);
             float likelihood = outcome
                 ? (isTarget ? (1.0f - fnRate) : fpRate)
                 : (isTarget ? fnRate           : (1.0f - fpRate));
@@ -517,8 +517,8 @@ bool TileVisited(int x, int y) {
     return _visited[y][x];
 }
 
-int GetObstacleDamage(int obstacleIndex) {
-    return WALL_DATA[obstacleIndex].damage;
+int GetObstacleDamage(int wallID) {
+    return WALL_DATA[wallID - 1].damage;
 }
 
 int GetMapWidth()  { return MAP_WIDTH;  }

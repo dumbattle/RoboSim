@@ -15,7 +15,7 @@ static bool IsRevealed(int x, int y) {
 }
 
 static float PEmpty(int x, int y) {
-    return GetTileConfidence(x, y, -1);
+    return GetTileConfidence(x, y, 0);
 }
 
 static bool IsKnownEmpty(int x, int y) {
@@ -74,7 +74,7 @@ static bool TryMove(int tx, int ty) {
 
 static float MaxObstacleDamage() {
     float mx = 0;
-    for (int i = 0; i < WALL_TYPE_COUNT; i++) {
+    for (int i = 1; i <= WALL_TYPE_COUNT; i++) {
         float d = (float)GetObstacleDamage(i);
         if (d > mx) mx = d;
     }
@@ -107,7 +107,7 @@ static bool ScanAndDecide(int tx, int ty) {
 
         int bestObs = -1;
         float bestGain = 0.0f;
-        for (int i = 0; i < WALL_TYPE_COUNT; i++) {
+        for (int i = 1; i <= WALL_TYPE_COUNT; i++) {
             InfoGain ig = GetExpectedInfoGain(tx, ty, i);
             if (ig.expected > bestGain) {
                 bestGain = ig.expected;

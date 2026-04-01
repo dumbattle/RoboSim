@@ -10,14 +10,14 @@
 // World / Tile
 // ----------------------
 
-// Set a tile directly. obstacleType: -1 = empty, 0+ = obstacle index
-void SetTile(int x, int y, int obstacleType);
+// Set a tile directly. wallID: 0 = empty, 1..WALL_TYPE_COUNT = wall type ID
+void SetTile(int x, int y, int wallID);
 
 // Read the raw tile value at (x, y)
 int GetTile(int x, int y);
 
 // Fill a rectangular region with a tile type
-void FillRect(int x1, int y1, int x2, int y2, int obstacleType);
+void FillRect(int x1, int y1, int x2, int y2, int wallID);
 
 // Clear a tile (set to empty)
 void ClearTile(int x, int y);
@@ -44,10 +44,10 @@ void ResetAllConfidence();
 // Error Rates
 // ----------------------
 
-// Set error rates for an obstacle type directly.
+// Set error rates for a wall type directly.
 // Locks rates in place (no transitions) until changed again.
 // fp / fn in range [0, 50].
-void SetErrors(int obstacleIndex, int falsePositive, int falseNegative);
+void SetErrors(int wallID, int falsePositive, int falseNegative);
 
 // Set all obstacle error rates to 0
 void ClearErrors();
@@ -71,8 +71,8 @@ void SetBattery(int amount);
 // World Inspection
 // ----------------------
 
-// Count tiles of a given type across the whole map. -1 = count empty tiles.
-int CountTiles(int obstacleType);
+// Count tiles of a given wall ID across the whole map. 0 = count empty tiles.
+int CountTiles(int wallID);
 
-// Returns true if the tile ahead of the robot is the given type (bypasses sensor)
-bool PeekAhead(int obstacleType);
+// Returns true if the tile ahead of the robot has the given wall ID (bypasses sensor)
+bool PeekAhead(int wallID);

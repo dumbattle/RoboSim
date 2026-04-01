@@ -10,9 +10,9 @@ float GetEmptyConfidence(int x, int y) {
     return GetTileConfidence(x, y, 0); // index 0 = empty
 }
 
-// Try scanning all obstacle types once
+// Try scanning all wall types once
 void ScanTile(int x, int y) {
-    for (int i = 0; i < WALL_TYPE_COUNT; i++) {
+    for (int i = 1; i <= WALL_TYPE_COUNT; i++) {
         InfoGain info = GetExpectedInfoGain(x, y, i);
 
         // Only scan if useful

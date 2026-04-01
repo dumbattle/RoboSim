@@ -103,7 +103,7 @@ static void drawInfoPanel() {
         WallData wd = WALL_DATA[t];
         auto c = wd.color;
         int fp, fn;
-        GetErrorRates(t, fp, fn);
+        GetErrorRates(t + 1, fp, fn);
         int f[] = {fp, fn};
         int score = GetScore();
 

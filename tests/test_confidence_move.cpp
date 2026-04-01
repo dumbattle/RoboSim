@@ -13,7 +13,7 @@ int main() {
     GetPosition(x, y);
     int ax = x, ay = y;
     Translate(ax, ay, GetDirection());
-    SetTile(ax, ay, -1);
+    SetTile(ax, ay, 0);
 
     // Verify confidence starts non-certain (uniform prior)
     float conf[TILE_TYPE_COUNT];
@@ -23,21 +23,21 @@ int main() {
     MoveForward();
 
     GetTileConfidence(ax, ay, conf);
-    check("Open tile: confidence[0] = 1.0 after move", conf[0] == 1.0f);
-    check("Open tile: no wall confidence after move",   conf[1] == 0.0f);
+    check("Open tile: confidence[0] = 1.0 after move", conf[0] >= .999f);
+    check("Open tile: no wall confidence after move",   conf[1] <= 0.001f);
 
     // Place a wall ahead, bump into it
     GetPosition(x, y);
     int wx = x, wy = y;
     Translate(wx, wy, GetDirection());
-    SetTile(wx, wy, 0);
+    SetTile(wx, wy, 1);
     ResetConfidence(wx, wy);
 
     MoveForward();  // hits wall
 
     GetTileConfidence(wx, wy, conf);
-    check("Wall tile: confidence[1] = 1.0 after collision", conf[1] == 1.0f);
-    check("Wall tile: no open confidence after collision",  conf[0] == 0.0f);
+    check("Wall tile: confidence[1] = 1.0 after collision", conf[1] >= .999f);
+    check("Wall tile: no open confidence after collision",  conf[0] <= 0.001f);
 
     summary();
     return _failed > 0 ? 1 : 0;

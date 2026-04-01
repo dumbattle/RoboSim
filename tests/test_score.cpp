@@ -13,7 +13,7 @@ int main() {
     GetPosition(x, y);
     int ax = x, ay = y;
     Translate(ax, ay, GetDirection());
-    SetTile(ax, ay, -1);
+    SetTile(ax, ay, 0);
 
     int s = GetScore();
     MoveForward();
@@ -21,7 +21,7 @@ int main() {
 
     // Walk back and return — should not increment again
     TurnToDirection(Right(Right(GetDirection())));
-    SetTile(x, y, -1);
+    SetTile(x, y, 0);
     MoveForward();
     TurnToDirection(Right(Right(GetDirection())));
     MoveForward();

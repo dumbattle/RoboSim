@@ -103,15 +103,13 @@ int main() {
             // Must face direction d before scanning
             TurnToDirection(d);
             for (size_t s = 0; s < 100; s++) {
-                for (int i = 0; i < WALL_TYPE_COUNT; i++) {
-
+                for (int i = 1; i <= WALL_TYPE_COUNT; i++) {
                     InfoGain ig = GetExpectedInfoGain(nx, ny, i);
                     if (ig.expected > 0.01f) ScanAhead(i);
                 }
-                
             }
 
-            float emptyConf = GetTileConfidence(nx, ny, -1);
+            float emptyConf = GetTileConfidence(nx, ny, 0);
             if (emptyConf >= 0.4f) {
                 bestNx = nx;
                 bestNy = ny;
