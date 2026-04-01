@@ -138,7 +138,8 @@ InfoGain GetExpectedInfoGain(int x, int y, int obstacleIndex);
 // and the robot does NOT advance. Reveals the destination tile's true type.
 // Crashes (battery -> 0) if the robot would move off the map.
 // The tile will be fully revealed (check confidence)
-void MoveForward();
+// Returns the -1 if the move was successful, -2 if out of bounds or out of batteries, or the wall type
+int MoveForward();
 
 // Rotates the robot 90° left / right in place. Costs BATTERY_TURN each.
 // Does not move the robot forward.

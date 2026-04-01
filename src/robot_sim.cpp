@@ -269,12 +269,12 @@ void Reset(long randomSeed) {
     printMap();
 }
 
-void MoveForward() {
+int MoveForward() {
     Tick();
 
     static int score = 0;
     numMoves++;
-    if (!drainBattery(BATTERY_MOVE)) return;
+    if (!drainBattery(BATTERY_MOVE)) return -2;
     int dx, dy;
     ToVector(robot.dir, dx, dy);
     int nx = robot.x + dx;
@@ -282,7 +282,7 @@ void MoveForward() {
 
     if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) {
         crash("Robot fell off the map!");
-        return;
+        return -2;
     }
 
     int wallType = world[ny][nx];
@@ -312,6 +312,7 @@ void MoveForward() {
     }
    
     printMap();
+    return wallType;
 }
 
 void TurnLeft() {

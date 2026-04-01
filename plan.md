@@ -52,15 +52,15 @@
 ## Display
 
 - [X] Distinct colors for wall vs cliff tiles
-- [ ] Unique erorr messages for cliff types
+- [] Unique erorr messages for cliff types
 - [X] Sensor error rate HUD display
 - [ ] Tile confidence visualization (optional)
 - [ ] Current mode label in HUD (optional)
 - [X] Reveal wall chunks
 
 ## Logging/Feedback
-- [ ] Track crashes per wall type
-- [ ] MoveForward returns tile type
+- [X] Track crashes per wall type
+- [X] MoveForward returns tile type
 
 
 ## Parameters (robot_params.h)
