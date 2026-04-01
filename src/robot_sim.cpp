@@ -107,7 +107,11 @@ static void buildChunks() {
 // Internal helpers
 // ----------------------
 
-static void UpdateErrors(ErrorData& data, int wallID) { 
+// Dedicated RNG for sensor error curves — seeded from ERROR_SEED so every
+// solution experiences identical drift regardless of its own rand() usage.
+static mt19937 errorRng;
+
+static void UpdateErrors(ErrorData& data, int wallID) {
     if (data.targetRate != data.currentRate) {
         data.timer -= 1;
 
@@ -119,7 +123,7 @@ static void UpdateErrors(ErrorData& data, int wallID) {
             data.currentRate = data.targetRate;
             int min = WALL_DATA[wallID].restPeriod[0];
             int max = WALL_DATA[wallID].restPeriod[1];
-            data.timer = (rand() % (max - min + 1)) + min;
+            data.timer = (int)(errorRng() % (max - min + 1)) + min;
         }
     }
     else {
@@ -127,8 +131,8 @@ static void UpdateErrors(ErrorData& data, int wallID) {
         if (data.timer <= 0) {
             data.timer = WALL_DATA[wallID].transitionTime;
 
-            auto range = WALL_DATA[wallID].errorRanges[rand() % WALL_DATA[wallID].errorRanges.size()];
-            data.targetRate = range[0] + rand() % (range[1] - range[0] + 1);
+            auto range = WALL_DATA[wallID].errorRanges[errorRng() % WALL_DATA[wallID].errorRanges.size()];
+            data.targetRate = range[0] + (int)(errorRng() % (range[1] - range[0] + 1));
             data.startRate = data.currentRate;
         }
     }
@@ -242,6 +246,8 @@ void Reset(long randomSeed) {
         randomSeed = SEED;
     }
     initDisplay();
+
+    errorRng.seed(ERROR_SEED);
 
     _visited.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));
     _scanned.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));

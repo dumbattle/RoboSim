@@ -24,7 +24,7 @@
 - [X] Continuous slow change over time (sine wave, random walk, or similar)
 - [X] Rates independent per obstacle type
 - [X] Rates are global (same for all tiles at a given tick)
-- [ ] Use Separate RNG instance so all solutions get same error curves (deterministic seed for stable repeated runs)
+- [X] Use Separate RNG instance for sensor error so all solutions get same error curves (deterministic seed for stable repeated runs)
 
 ## New API - sensor information
 

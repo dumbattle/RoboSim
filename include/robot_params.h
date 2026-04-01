@@ -102,6 +102,10 @@ const int SCORE_REPORT_INTERVAL = -1;     // reports energy usage after collecti
 
 const unsigned int SEED = 31415;
 
+// Fixed seed for the error-rate RNG — kept separate so every solution
+// experiences identical sensor error curves regardless of how it uses rand().
+const unsigned int ERROR_SEED = 99999;
+
 
 
 #endif
