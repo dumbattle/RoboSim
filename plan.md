@@ -24,7 +24,7 @@
 - [X] Continuous slow change over time (sine wave, random walk, or similar)
 - [X] Rates independent per obstacle type
 - [X] Rates are global (same for all tiles at a given tick)
-
+- [ ] Use Separate RNG instance so all solutions get same error curves (deterministic seed for stable repeated runs)
 
 ## New API - sensor information
 
@@ -39,8 +39,8 @@
 - [X] `TurnToDirection(Direction d)` - shortest rotation
 - [X] `TileVisited(x, y)` - auto-tracked
 - [X] Scan memory / confidence tracking (internal bookkeeping)
-- [ ] `RobotAdjacent(Direction d, int& resultX, int& resultY)`
-- [ ] `PositionForward(Direction d, int& resultX, int& resultY)` - tile the robot is facing
+- [X] `RobotAdjacent(Direction d, int& resultX, int& resultY)`
+- [X] `PositionForward(int& resultX, int& resultY)` - tile the robot is facing
 
 ## New API - state machine
 
@@ -51,6 +51,10 @@
 - [X] `sm.SetMode(name)` - activate a mode calls onenter/onexit if registered
 - [X] `sm.Tick()` - execute current mode
 
+## Modify API
+
+- `ScanAhead` return scan result (bool), incase solution wants their own tracking
+
 ## Display
 
 - [X] Distinct colors for wall vs cliff tiles
@@ -59,7 +63,7 @@
 - [ ] Tile confidence visualization (optional)
 - [ ] Current mode label in HUD (optional)
 - [X] Reveal wall chunks
-- [ ] Track/Display EMPTY tiles that were scanned, but not visited
+- [X] Track/Display EMPTY tiles that were scanned, but not visited
 
 ## Logging/Feedback
 - [X] Track crashes per wall type

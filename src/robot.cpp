@@ -5,6 +5,7 @@ using namespace std;
 
 Robot robot;
 vector<vector<bool>> _visited;
+vector<vector<bool>> _scanned;
 std::vector<std::vector<std::vector<float>>> _confidence;
 std::vector<SensorError> sensorErrors(WALL_TYPE_COUNT);
 

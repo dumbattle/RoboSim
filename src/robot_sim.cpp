@@ -244,6 +244,7 @@ void Reset(long randomSeed) {
     initDisplay();
 
     _visited.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));
+    _scanned.assign(MAP_HEIGHT, vector<bool>(MAP_WIDTH, false));
     _confidence.assign(MAP_HEIGHT, vector<vector<float>>(MAP_WIDTH, vector<float>(TILE_TYPE_COUNT, 1.0 /  TILE_TYPE_COUNT)));
     generateWorld(randomSeed);
 
@@ -355,6 +356,8 @@ void ScanAhead(int wallID) {
     int ny = robot.y + dy;
 
     if (!InRange(nx, ny)) return;
+
+    _scanned[ny][nx] = true;
 
     auto& conf = _confidence[ny][nx];
 
@@ -515,6 +518,16 @@ int GetScore() {
 
 bool TileVisited(int x, int y) {
     return _visited[y][x];
+}
+
+void RobotAdjacent(Direction d, int& resultX, int& resultY) {
+    resultX = robot.x;
+    resultY = robot.y;
+    Translate(resultX, resultY, d);
+}
+
+void PositionForward(int& resultX, int& resultY) {
+    RobotAdjacent(robot.dir, resultX, resultY);
 }
 
 int GetObstacleDamage(int wallID) {

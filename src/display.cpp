@@ -45,6 +45,14 @@ static int countVisited() {
     return n;
 }
 
+static int countScannedNotVisited() {
+    int n = 0;
+    for (int r = 0; r < MAP_HEIGHT; r++)
+        for (int c = 0; c < MAP_WIDTH; c++)
+            if (_scanned[r][c] && world[r][c] < 0 && !_visited[r][c]) n++;
+    return n;
+}
+
 static void sleep() {
     this_thread::sleep_for(chrono::milliseconds(SLEEP_MILLISECONDS));
 }
@@ -205,7 +213,8 @@ static sf::Color tileColour(int x, int y) {
         result = sf::Color(c[0], c[1], c[2]);
     }
     else {
-        result = _visited[y][x] ? COLOR_VISITED : COLOR_UNVISITED;
+        if (_visited[y][x])       result = COLOR_VISITED;
+        else                      result = COLOR_UNVISITED;
     }
     auto c = _confidence[y][x];
 
@@ -309,12 +318,13 @@ void printMap(bool force) {
 
 void printStatus() {
     // Always write stats to stdout so they survive after the window closes.
-    cout 
+    cout
          << "\nFinal Score      : " << countVisited() << "\n"
          << "Battery remaining: " << robot.battery << "\n\n"
          << "Steps Taken      : " << numMoves << "\n"
          << "Turns Made       : " << numTurns << "\n"
          << "Tiles Scanned    : " << numScans << "\n"
+         << "Scanned, Not Vis : " << countScannedNotVisited() << "\n"
         //  << "\"score\": "<<countVisited()<<", \"steps\": "<<numMoves<<", \"turns\": "<<numTurns<<", \"scans\": "<<numScans<< endl
     ;
     cout << " -- Crashes -- \n";

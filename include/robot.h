@@ -23,6 +23,7 @@ struct SensorError {
 
 extern Robot robot;
 extern std::vector<std::vector<bool>> _visited;
+extern std::vector<std::vector<bool>> _scanned;  // tiles that had ScanAhead() called on them
 extern std::vector<std::vector<std::vector<float>>> _confidence;
 
 extern std::vector<SensorError> sensorErrors;

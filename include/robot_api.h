@@ -176,6 +176,14 @@ bool InRange(int x, int y);
 // Returns true if the robot has previously stepped on tile (x, y).
 bool TileVisited(int x, int y);
 
+// Fills (resultX, resultY) with the position one tile from the robot in direction d.
+// Does not check bounds.
+void RobotAdjacent(Direction d, int& resultX, int& resultY);
+
+// Fills (resultX, resultY) with the position of the tile the robot is currently facing.
+// Equivalent to RobotAdjacent(GetDirection(), resultX, resultY).
+void PositionForward(int& resultX, int& resultY);
+
 // Returns the battery damage dealt when colliding with wall type wallID.
 // wallID: [1, WALL_TYPE_COUNT]
 int GetObstacleDamage(int wallID);
